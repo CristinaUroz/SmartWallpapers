@@ -38,12 +38,12 @@
         android:layout_alignEnd="@+id/ImageViewG"
         android:layout_alignParentTop="true"
         android:layout_gravity="top|right"
-        app:srcCompat="@android:drawable/ic_delete" />
+        app:srcCompat="@android:drawable/ic_menu_delete" />
 
     <ImageView
         android:id="@+id/likeViewG"
-        android:layout_width="26dp"
-        android:layout_height="28dp"
+        android:layout_width="28dp"
+        android:layout_height="32dp"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/ImageViewG"
         app:srcCompat="@android:drawable/presence_invisible" />

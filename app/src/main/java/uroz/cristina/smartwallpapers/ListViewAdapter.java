@@ -13,6 +13,12 @@ import android.widget.TextView;
 import java.util.List;
 
 public class ListViewAdapter extends ArrayAdapter<Quote> {
+
+    static final int icon_like_off=android.R.drawable.presence_invisible;
+    static final int icon_like_on=android.R.drawable.presence_online;
+    static final int icon_favorite_off=android.R.drawable.star_big_on;
+    static final int icon_favorite_on=android.R.drawable.star_big_off;
+
     public ListViewAdapter(@NonNull Context context, int resource, @NonNull List<Quote> objects) {
         super(context, resource, objects);
     }
@@ -66,13 +72,13 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
 
     private void setResources(Quote quote, ImageView like, ImageView favorite){
         if (quote.isLiked()){
-            like.setImageResource(android.R.drawable.presence_online);
+            like.setImageResource(icon_like_on);
         }
-        else {like.setImageResource(android.R.drawable.presence_invisible);}
+        else {like.setImageResource(icon_like_off);}
 
         if (quote.isFavorite()){
-            favorite.setImageResource(android.R.drawable.star_big_on);
+            favorite.setImageResource(icon_favorite_off);
         }
-        else {favorite.setImageResource(android.R.drawable.star_big_off);}
+        else {favorite.setImageResource(icon_favorite_on);}
     }
 }

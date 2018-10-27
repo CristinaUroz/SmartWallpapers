@@ -46,7 +46,7 @@
         android:layout_marginTop="21dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_delete" />
+        app:srcCompat="@android:drawable/ic_menu_delete" />
 
     <ImageView
         android:id="@+id/favoriteViewL"
@@ -65,7 +65,7 @@
         android:id="@+id/likeViewL"
         android:layout_width="34dp"
         android:layout_height="32dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="21dp"
         app:layout_constraintEnd_toStartOf="@+id/favoriteViewL"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/presence_invisible" />

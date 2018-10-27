@@ -3,11 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- "Mark Favorite", should appear as action button if possible -->
+
+    <item
+        android:id="@+id/changeWallpaper"
+        android:icon="@android:drawable/stat_notify_sync"
+        android:title="changeWallpaper"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/info"
+        android:checkable="true"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="info"
+        android:visible="true"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="always" />
     <item
         android:id="@+id/change_view"
-        android:icon="@android:drawable/ic_dialog_dialer"
+        android:checkable="true"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="change_view"
-        app:showAsAction="ifRoom" />
+        android:visible="true"
+        app:showAsAction="never|always" />
 
 
 </menu>

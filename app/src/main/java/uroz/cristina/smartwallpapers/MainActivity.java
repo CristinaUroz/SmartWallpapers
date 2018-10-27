@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -24,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -51,6 +53,17 @@ public class MainActivity extends AppCompatActivity {
     static final int VIEW_MODE_LISTVIEW = 0;
     static final int VIEW_MODE_GRIDVIEW = 1;
     static final int VIEW_MODE_IMAGEVIEW = 2;
+
+    static final int icon_like_off=android.R.drawable.presence_invisible;
+    static final int icon_like_on=android.R.drawable.presence_online;
+    static final int icon_favorite_off=android.R.drawable.star_big_on;
+    static final int icon_favorite_on=android.R.drawable.star_big_off;
+    static final int icon_grid=android.R.drawable.ic_dialog_dialer;
+    static final int icon_list=android.R.drawable.ic_menu_sort_by_size;
+    static final int icon_revertgrid=android.R.drawable.ic_menu_revert;
+
+    //Change view menu item id
+    static final int CHANGE_VIEW_MODE = 2;
 
     private long lastTouchTime = 0;
     private long currentTouchTime = 0;
@@ -85,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Get current view mode in share reference
         SharedPreferences sharedPreferences = getSharedPreferences("viewMode", MODE_PRIVATE);
-        currentViewMode = sharedPreferences.getInt("currentViewMode", VIEW_MODE_LISTVIEW); //Default
+        currentViewMode = sharedPreferences.getInt("currentViewMode", VIEW_MODE_GRIDVIEW); //Default
 
         listView.setOnItemClickListener(onItemClick);
         listView.setOnItemLongClickListener(onLongClick);
@@ -96,16 +109,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void switchView() {
 
-        if(VIEW_MODE_LISTVIEW == currentViewMode | VIEW_MODE_IMAGEVIEW == currentViewMode){
+        if(VIEW_MODE_LISTVIEW == currentViewMode){
+            getSupportActionBar().setTitle("Quotes");
             stubList.setVisibility(View.VISIBLE);
             stubGrid.setVisibility(View.GONE);
             listState = listView.onSaveInstanceState();
         }
         else if(VIEW_MODE_IMAGEVIEW == currentViewMode){
+            getSupportActionBar().setTitle("Categories");
             stubList.setVisibility(View.VISIBLE);
             stubGrid.setVisibility(View.GONE);
         }
         else {
+            getSupportActionBar().setTitle("Categories");
             stubList.setVisibility(View.GONE);
             stubGrid.setVisibility(View.VISIBLE);
             gridState = gridView.onSaveInstanceState();
@@ -141,12 +157,11 @@ public class MainActivity extends AppCompatActivity {
         return quoteList;
     }
 
-    //private List<Image> getImageList(String category_title) {
-    private List<Image> getImageList() {
-
+    private List<Image> getImageList(String category_title) {
         imageList = new ArrayList<>();
         for (int i=0;  i<15; i++) {
             imageList.add(new Image(android.R.drawable.ic_menu_gallery, "Image "+ Integer.toString(i), "Descriptor", false, false, false));
+            //imageList.add(new Image(R.drawable.wallpaper, "Image "+ Integer.toString(i), "Descriptor", false, false, false));
         }
         return imageList;
     }
@@ -162,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         return categoryList;
     }
 
-    AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener(){
+    AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener() {
         @Override
         public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
 
@@ -172,13 +187,13 @@ public class MainActivity extends AppCompatActivity {
             else if (VIEW_MODE_GRIDVIEW == currentViewMode)
             {
                 //getImageList(categoryList.get(position).getTitle());
-                Log.i("Cristina", "Long Click category");
-                getImageList();
+                getSupportActionBar().setTitle(categoryList.get(position).getTitle());
+                getImageList(categoryList.get(position).getTitle());
                 currentViewMode = VIEW_MODE_IMAGEVIEW;
 
                 gridState = listView.onSaveInstanceState();
 
-                optionsMenu.getItem(0).setIcon(android.R.drawable.ic_menu_revert);
+                optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
 
                 SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -189,22 +204,99 @@ public class MainActivity extends AppCompatActivity {
 
             }
             else {
-                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                View mView = getLayoutInflater().inflate(R.layout.image_dialog,null);
-
-                ImageView imageView5 =  (ImageView) mView.findViewById(R.id.image_id);
-                int imageId = imageList.get(position).getImageId();
-                imageView5.setImageResource(imageId);
-
-                mBuilder.setView(mView);
-                AlertDialog dialog = mBuilder.create();
-                dialog.show();
-
+                createDialog(position);
             }
             return false;
         }
     };
+
+    private void createDialog(final int position){
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        View mView = getLayoutInflater().inflate(R.layout.image_dialog,null);
+        mBuilder.setView(mView);
+        final AlertDialog dialog = mBuilder.create();
+
+        ImageView imageView =  (ImageView) mView.findViewById(R.id.ImageViewD);
+        final ImageView like =  (ImageView) mView.findViewById(R.id.likeViewD);
+        final ImageView favorite =  (ImageView) mView.findViewById(R.id.favoriteViewD);
+        ImageView delete =  (ImageView) mView.findViewById(R.id.deleteViewD);
+        ImageView previous =  (ImageView) mView.findViewById(R.id.previousViewD);
+        ImageView next =  (ImageView) mView.findViewById(R.id.nextViewD);
+        TextView Title =  (TextView) mView.findViewById(R.id.txtTitleD);
+        TextView Autor =  (TextView) mView.findViewById(R.id.txtAutorD);
+
+        imageView.setImageResource(imageList.get(position).getImageId());
+        Title.setText(imageList.get(position).getTitle());
+        Autor.setText(imageList.get(position).getAutor());
+
+        final Image image=imageList.get(position);
+
+        if (image.isLiked()){
+            like.setImageResource(icon_like_on);
+        }
+        else {like.setImageResource(icon_like_off);}
+
+        if (image.isFavorite()){
+            favorite.setImageResource(icon_favorite_off);
+        }
+        else {favorite.setImageResource(icon_favorite_on);}
+
+        like.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                image.toggleLiked();
+                imageViewAdapter.notifyDataSetChanged();
+                if (image.isLiked()){
+                    like.setImageResource(icon_like_on);
+                }
+                else {like.setImageResource(icon_like_off);}
+            }
+        });
+
+        favorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                image.toggleFavorite();
+                imageViewAdapter.notifyDataSetChanged();
+                if (image.isFavorite()){
+                    favorite.setImageResource(icon_favorite_off);
+                }
+                else {favorite.setImageResource(icon_favorite_on);}
+            }
+        });
+
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                image.setDeleted(true);
+                imageList.remove(image);
+                imageViewAdapter.notifyDataSetChanged();
+                dialog.cancel();
+            }
+        });
+
+        previous.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+                int new_position=position-1;
+                if (new_position<0){ new_position=imageList.size()-1;}
+                createDialog(new_position);
+            }
+        });
+
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+                int new_position=position+1;
+                if (new_position>=imageList.size()){ new_position=0;}
+                createDialog(new_position);
+            }
+        });
+
+        dialog.show();
+    }
 
     AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
         @Override
@@ -214,14 +306,96 @@ public class MainActivity extends AppCompatActivity {
                 quoteList.get(position).toggleLiked();
                 listViewAdapter.notifyDataSetChanged();
 
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 250) {
+                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                    mBuilder.setMessage("Do you want to display this quote as wallpaper?");
+                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            setWallpaper();
+                        }
+                    });
+
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+
+                    if (!quoteList.get(position).isLiked()){
+                        quoteList.get(position).toggleLiked();
+                        listViewAdapter.notifyDataSetChanged();
+                    }
+                }
             }
             else if (VIEW_MODE_GRIDVIEW == currentViewMode){
                 categoryList.get(position).toggleLiked();
                 gridViewAdapter.notifyDataSetChanged();
+
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 250) {
+                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                    mBuilder.setMessage("Do you want to display a " +categoryList.get(position).getTitle()+" image as wallpaper?");
+                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            setWallpaper();
+                        }
+                    });
+
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+
+                    if (!categoryList.get(position).isLiked()){
+                        categoryList.get(position).toggleLiked();
+                        gridViewAdapter.notifyDataSetChanged();
+                    }
+                }
+
             }
             else {
                 imageList.get(position).toggleLiked();
                 imageViewAdapter.notifyDataSetChanged();
+
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 250) {
+                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                    mBuilder.setMessage("Do you want to display this image as wallpaper?");
+                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            setWallpaper();
+                        }
+                    });
+
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+
+                    if (!imageList.get(position).isLiked()){
+                        imageList.get(position).toggleLiked();
+                        imageViewAdapter.notifyDataSetChanged();
+                    }
+                }
+
             }
 
         }
@@ -240,15 +414,15 @@ public class MainActivity extends AppCompatActivity {
             case R.id.change_view:
                 if (VIEW_MODE_LISTVIEW == currentViewMode){
                     currentViewMode = VIEW_MODE_GRIDVIEW;
-                    item.setIcon(android.R.drawable.ic_menu_sort_by_size);
+                    item.setIcon(icon_list);
                 }
                 else if (VIEW_MODE_IMAGEVIEW == currentViewMode){
                     currentViewMode = VIEW_MODE_GRIDVIEW;
-                    item.setIcon(android.R.drawable.ic_menu_sort_by_size);
+                    item.setIcon(icon_list);
                 }
                 else {
                     currentViewMode = VIEW_MODE_LISTVIEW;
-                    item.setIcon(android.R.drawable.ic_dialog_dialer);
+                    item.setIcon(icon_grid);
                 }
 
                 switchView();
@@ -257,7 +431,21 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putInt("currentViewMode",currentViewMode);
                 editor.commit();
+                break;
+            case R.id.info:
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
 
+                mBuilder.setMessage("Double click to display a quote/image/category image as a wallpaper. " +
+                        "\n\nLong click to enter in a category " +
+                        "\n\nLong click to view an image " +
+                        "\n\nClick on the top right icon to change view to quotes/categories " +
+                        "\n\nClick on the top left icon to change wallpaper");
+
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();
+                break;
+            case R.id.changeWallpaper:
+                setWallpaper();
                 break;
         }
         return super.onOptionsItemSelected(item);
