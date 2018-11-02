@@ -35,34 +35,21 @@ public class ImageViewAdapter extends ArrayAdapter<Image> {
         ImageView img = (ImageView) v.findViewById(R.id.ImageViewI);
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewI);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewI);
-        final ImageView favorite = (ImageView) v.findViewById(R.id.favoriteViewI);
 
         img.setImageResource(image.getImageId());
-
-        setResources(image, like, favorite);
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                image.toggleLiked();
-                setResources(image, like, favorite);
+                image.setLiked();
+                remove(image);
             }
         });
-
-        favorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                image.toggleFavorite();
-                setResources(image, like, favorite);
-            }
-        });
-
-
 
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                image.setDeleted(true);
+                image.setDeleted();
                 remove(image);
             }
         });
@@ -71,18 +58,6 @@ public class ImageViewAdapter extends ArrayAdapter<Image> {
 
 
 
-    }
-
-    private void setResources(Image image, ImageView like, ImageView favorite){
-        if (image.isLiked()){
-            like.setImageResource(icon_like_on);
-        }
-        else {like.setImageResource(icon_like_off);}
-
-        if (image.isFavorite()){
-            favorite.setImageResource(icon_favorite_off);
-        }
-        else {favorite.setImageResource(icon_favorite_on);}
     }
 
 }

@@ -5,16 +5,14 @@ public class Image {
     private String title;
     private String autor;
     private boolean liked;
-    private boolean favorite;
     private boolean deleted;
 
-    public Image(int imageId, String title, String autor , boolean liked, boolean favorite, boolean deleted) {
+    public Image(int imageId, String title, String autor , boolean liked, boolean deleted) {
         this.imageId = imageId;
         this.title = title;
         this.autor = autor;
         this.liked = liked;
         this.deleted = deleted;
-        this.favorite = favorite;
     }
 
     public int getImageId() {
@@ -41,8 +39,8 @@ public class Image {
         return liked;
     }
 
-    public void setLiked(boolean liked) {
-        this.liked = liked;
+    public void setLiked() {
+        this.liked = true;
     }
 
     public void setAutor(String descriptor) {
@@ -53,23 +51,9 @@ public class Image {
         return deleted;
     }
 
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public void setDeleted() {
+        this.deleted = true;
     }
 
-    public boolean isFavorite() {
-        return favorite;
-    }
 
-    public void setFavorite(boolean favorite) {
-        this.favorite = favorite;
-    }
-
-    public void toggleLiked() {
-        this.liked=!this.liked;
-    }
-
-    public void toggleFavorite() {
-        this.favorite=!this.favorite;
-    }
 }

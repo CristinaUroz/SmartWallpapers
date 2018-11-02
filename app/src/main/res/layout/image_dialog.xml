@@ -68,15 +68,7 @@
             android:layout_height="33dp"
             android:layout_gravity="center"
             android:layout_weight="1"
-            app:srcCompat="@android:drawable/presence_invisible" />
-
-        <ImageView
-            android:id="@+id/favoriteViewD"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            app:srcCompat="@android:drawable/btn_star_big_off" />
+            app:srcCompat="@android:drawable/checkbox_on_background" />
 
         <ImageView
             android:id="@+id/deleteViewD"

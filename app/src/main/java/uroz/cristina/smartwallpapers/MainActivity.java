@@ -28,7 +28,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,10 +60,6 @@ public class MainActivity extends AppCompatActivity {
     static final int VIEW_MODE_GRIDVIEW = 1;
     static final int VIEW_MODE_IMAGEVIEW = 2;
 
-    static final int icon_like_off=android.R.drawable.presence_invisible;
-    static final int icon_like_on=android.R.drawable.presence_online;
-    static final int icon_favorite_off=android.R.drawable.star_big_on;
-    static final int icon_favorite_on=android.R.drawable.star_big_off;
     static final int icon_grid=android.R.drawable.ic_dialog_dialer;
     static final int icon_list=android.R.drawable.ic_menu_sort_by_size;
     static final int icon_revertgrid=android.R.drawable.ic_menu_revert;
@@ -151,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
         quoteList = new ArrayList<>();
         for (int i=0;  i<15; i++) {
-            quoteList.add(new Quote(" Title "+ Integer.toString(i), "Descriptor", false, false,false));
+            quoteList.add(new Quote(" Title "+ Integer.toString(i), "Descriptor", false, false));
         }
 
         return quoteList;
@@ -160,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Image> getImageList(String category_title) {
         imageList = new ArrayList<>();
         for (int i=0;  i<15; i++) {
-            imageList.add(new Image(android.R.drawable.ic_menu_gallery, "Image "+ Integer.toString(i), "Descriptor", false, false, false));
+            imageList.add(new Image(android.R.drawable.ic_menu_gallery, "Image "+ Integer.toString(i), "Descriptor", false, false));
             //imageList.add(new Image(R.drawable.wallpaper, "Image "+ Integer.toString(i), "Descriptor", false, false, false));
         }
         return imageList;
@@ -170,16 +172,18 @@ public class MainActivity extends AppCompatActivity {
 
         categoryList = new ArrayList<>();
         for (int i=0;  i<15; i++) {
-            categoryList.add(new Category(android.R.drawable.ic_menu_gallery, " Category "+ Integer.toString(i), false,false, false));
+            categoryList.add(new Category(android.R.drawable.ic_menu_gallery, " Category "+ Integer.toString(i), false, false));
             //categoryList.add(new Category(R.drawable.wallpaper, " Category "+ Integer.toString(i), false, false, false));
         }
 
         return categoryList;
     }
 
-    AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener() {
+    AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener()
+    {
         @Override
-        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
+        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l)
+        {
 
             if(VIEW_MODE_LISTVIEW == currentViewMode){
 
@@ -218,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView imageView =  (ImageView) mView.findViewById(R.id.ImageViewD);
         final ImageView like =  (ImageView) mView.findViewById(R.id.likeViewD);
-        final ImageView favorite =  (ImageView) mView.findViewById(R.id.favoriteViewD);
         ImageView delete =  (ImageView) mView.findViewById(R.id.deleteViewD);
         ImageView previous =  (ImageView) mView.findViewById(R.id.previousViewD);
         ImageView next =  (ImageView) mView.findViewById(R.id.nextViewD);
@@ -231,47 +234,30 @@ public class MainActivity extends AppCompatActivity {
 
         final Image image=imageList.get(position);
 
-        if (image.isLiked()){
-            like.setImageResource(icon_like_on);
-        }
-        else {like.setImageResource(icon_like_off);}
-
-        if (image.isFavorite()){
-            favorite.setImageResource(icon_favorite_off);
-        }
-        else {favorite.setImageResource(icon_favorite_on);}
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                image.toggleLiked();
+                image.setLiked();
+                imageList.remove(image);
                 imageViewAdapter.notifyDataSetChanged();
-                if (image.isLiked()){
-                    like.setImageResource(icon_like_on);
-                }
-                else {like.setImageResource(icon_like_off);}
-            }
-        });
-
-        favorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                image.toggleFavorite();
-                imageViewAdapter.notifyDataSetChanged();
-                if (image.isFavorite()){
-                    favorite.setImageResource(icon_favorite_off);
-                }
-                else {favorite.setImageResource(icon_favorite_on);}
+                dialog.cancel();
+                int new_position=position+1;
+                if (new_position>=imageList.size()){ new_position=0;}
+                createDialog(new_position);
             }
         });
 
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                image.setDeleted(true);
+                image.setDeleted();
                 imageList.remove(image);
                 imageViewAdapter.notifyDataSetChanged();
                 dialog.cancel();
+                int new_position=position+1;
+                if (new_position>=imageList.size()){ new_position=0;}
+                createDialog(new_position);
             }
         });
 
@@ -303,8 +289,6 @@ public class MainActivity extends AppCompatActivity {
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
             if(VIEW_MODE_LISTVIEW == currentViewMode){
-                quoteList.get(position).toggleLiked();
-                listViewAdapter.notifyDataSetChanged();
 
                 lastTouchTime = currentTouchTime;
                 currentTouchTime = System.currentTimeMillis();
@@ -324,18 +308,16 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
+                    quoteList.get(position).setLiked();
+                    listViewAdapter.notifyDataSetChanged();
+
                     AlertDialog dialog = mBuilder.create();
                     dialog.show();
 
-                    if (!quoteList.get(position).isLiked()){
-                        quoteList.get(position).toggleLiked();
-                        listViewAdapter.notifyDataSetChanged();
-                    }
                 }
             }
             else if (VIEW_MODE_GRIDVIEW == currentViewMode){
-                categoryList.get(position).toggleLiked();
-                gridViewAdapter.notifyDataSetChanged();
+
 
                 lastTouchTime = currentTouchTime;
                 currentTouchTime = System.currentTimeMillis();
@@ -355,19 +337,16 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
+                    categoryList.get(position).setLiked();
+                    gridViewAdapter.notifyDataSetChanged();
+
                     AlertDialog dialog = mBuilder.create();
                     dialog.show();
 
-                    if (!categoryList.get(position).isLiked()){
-                        categoryList.get(position).toggleLiked();
-                        gridViewAdapter.notifyDataSetChanged();
-                    }
                 }
 
             }
             else {
-                imageList.get(position).toggleLiked();
-                imageViewAdapter.notifyDataSetChanged();
 
                 lastTouchTime = currentTouchTime;
                 currentTouchTime = System.currentTimeMillis();
@@ -387,13 +366,12 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
+                    imageList.get(position).setLiked();
+                    imageViewAdapter.notifyDataSetChanged();
+
                     AlertDialog dialog = mBuilder.create();
                     dialog.show();
 
-                    if (!imageList.get(position).isLiked()){
-                        imageList.get(position).toggleLiked();
-                        imageViewAdapter.notifyDataSetChanged();
-                    }
                 }
 
             }
@@ -452,19 +430,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setWallpaper(){
-
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.wallpaper);
-        WallpaperManager manager = WallpaperManager.getInstance(getApplicationContext());
-
-        try{
-            manager.setBitmap(bitmap);
-            Toast.makeText(this, "Wallpaper set!", Toast.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        setWallpaper p = new setWallpaper(this, R.drawable.wallpaper);
+        new Thread(p).start();
     }
-
 
      //????????????????????????????
     @Override
@@ -481,6 +449,42 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    public void trytoapi(){
+        new Thread() {
+            @Override
+            public void run() {
+
+                Log.i("ttttttrrrraaaaiiiinnn", "Getting access token");
+                try {
+                    URL url = new URL("https://api.unsplash.com/photos?client_id=***");
+                    Log.i("", "Send GET url liked image" + url.toString());
+                    HttpURLConnection urlConnection = (HttpURLConnection) url
+                            .openConnection();
+                    urlConnection.setRequestMethod("GET");//by default is GET
+                    urlConnection.setDoInput(true);
+                    OutputStreamWriter writer = new OutputStreamWriter(
+                            urlConnection.getOutputStream());
+                    writer.write("url");
+                    writer.flush();
+                    String response =Utils.streamToString(urlConnection
+                            .getInputStream());
+                    Log.i("", "*?*?*?*?*?*?*?*?*?*?*? response *?*?*?*?*?*?*?*?*?*?*?" + response);
+                    JSONObject jsonObj = (JSONObject) new JSONTokener(response)
+                            .nextValue();
+
+                    tv.setText(jsonObj.toString());
+
+
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        }.start();
+    }
+*/
 }
 
 

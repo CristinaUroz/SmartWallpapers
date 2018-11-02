@@ -34,35 +34,25 @@ public class GridViewAdapter extends ArrayAdapter <Category>{
         final Category category = getItem(position);
         ImageView img = (ImageView) v.findViewById(R.id.ImageViewG);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewG);
-        final ImageView favorite = (ImageView) v.findViewById(R.id.favoriteViewG);
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewG);
         TextView txtTitle = (TextView) v.findViewById(R.id.txtTitleG);
 
         img.setImageResource(category.getImageId());
         txtTitle.setText(category.getTitle());
 
-        setResources(category, like, favorite);
-
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                category.toggleLiked();
-                setResources(category, like, favorite);
+                category.setLiked();
+                remove(category);
             }
         });
 
-        favorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                category.toggleFavorite();
-                setResources(category, like, favorite);
-            }
-        });
 
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                category.setDeleted(true);
+                category.setDeleted();
                 remove(category);
             }
         });
@@ -70,15 +60,4 @@ public class GridViewAdapter extends ArrayAdapter <Category>{
         return v;
     }
 
-    private void setResources(Category category, ImageView like, ImageView favorite){
-            if (category.isLiked()){
-            like.setImageResource(icon_like_on);
-        }
-        else {like.setImageResource(icon_like_off);}
-
-        if (category.isFavorite()){
-            favorite.setImageResource(icon_favorite_off);
-        }
-        else {favorite.setImageResource(icon_favorite_on);}
-    }
 }

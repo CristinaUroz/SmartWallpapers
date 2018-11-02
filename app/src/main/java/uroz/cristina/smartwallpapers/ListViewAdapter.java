@@ -33,7 +33,6 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         }
         final Quote quote= getItem(position);
         final ImageView like= (ImageView) v.findViewById(R.id.likeViewL);
-        final ImageView favorite= (ImageView) v.findViewById(R.id.favoriteViewL);
         ImageView delete= (ImageView) v.findViewById(R.id.deleteViewL);
         TextView txtTitle= (TextView) v.findViewById(R.id.txtTitleL);
         TextView txtAutor = (TextView) v.findViewById(R.id.txtAutorL);
@@ -41,28 +40,18 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         txtTitle.setText(quote.getTitle());
         txtAutor.setText(quote.getAutor());
 
-        setResources(quote, like, favorite);
-
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                quote.toggleLiked();
-                setResources(quote, like, favorite);
-            }
-        });
-
-        favorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                quote.toggleFavorite();
-                setResources(quote, like, favorite);
+                quote.setLiked();
+                remove(quote);
             }
         });
 
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                quote.setDeleted(true);
+                quote.setDeleted();
                 remove(quote);
             }
         });
@@ -70,15 +59,4 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         return v;
     }
 
-    private void setResources(Quote quote, ImageView like, ImageView favorite){
-        if (quote.isLiked()){
-            like.setImageResource(icon_like_on);
-        }
-        else {like.setImageResource(icon_like_off);}
-
-        if (quote.isFavorite()){
-            favorite.setImageResource(icon_favorite_off);
-        }
-        else {favorite.setImageResource(icon_favorite_on);}
-    }
 }

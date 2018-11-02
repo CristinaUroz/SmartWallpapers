@@ -21,15 +21,6 @@
         app:srcCompat="@mipmap/ic_launcher_round" />
 
     <ImageView
-        android:id="@+id/favoriteViewI"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/ImageViewI"
-        android:layout_centerHorizontal="true"
-        android:layout_weight="1"
-        app:srcCompat="@android:drawable/star_big_off" />
-
-    <ImageView
         android:id="@+id/deleteViewI"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -44,7 +35,7 @@
         android:layout_height="31dp"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/ImageViewI"
-        app:srcCompat="@android:drawable/presence_invisible" />
+        app:srcCompat="@android:drawable/checkbox_on_background" />
 
 
 </RelativeLayout>

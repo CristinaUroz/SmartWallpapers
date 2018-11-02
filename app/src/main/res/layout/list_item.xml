@@ -49,25 +49,13 @@
         app:srcCompat="@android:drawable/ic_menu_delete" />
 
     <ImageView
-        android:id="@+id/favoriteViewL"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/txtTitleL"
-        android:layout_marginTop="21dp"
-        android:adjustViewBounds="false"
-        android:visibility="visible"
-        app:layout_constraintEnd_toStartOf="@+id/deleteViewL"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/star_big_off" />
-
-    <ImageView
         android:id="@+id/likeViewL"
         android:layout_width="34dp"
         android:layout_height="32dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginTop="21dp"
-        app:layout_constraintEnd_toStartOf="@+id/favoriteViewL"
+        app:layout_constraintEnd_toStartOf="@+id/deleteViewL"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/presence_invisible" />
+        app:srcCompat="@android:drawable/checkbox_on_background" />
 
 </android.support.constraint.ConstraintLayout>

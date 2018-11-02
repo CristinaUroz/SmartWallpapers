@@ -21,16 +21,6 @@
         app:srcCompat="@mipmap/ic_launcher_round" />
 
     <ImageView
-        android:id="@+id/favoriteViewG"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-
-        android:layout_alignTop="@+id/ImageViewG"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="top|left"
-        app:srcCompat="@android:drawable/star_big_off" />
-
-    <ImageView
         android:id="@+id/deleteViewG"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,7 +36,7 @@
         android:layout_height="32dp"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/ImageViewG"
-        app:srcCompat="@android:drawable/presence_invisible" />
+        app:srcCompat="@android:drawable/checkbox_on_background" />
 
     <TextView
         android:id="@+id/txtTitleG"
