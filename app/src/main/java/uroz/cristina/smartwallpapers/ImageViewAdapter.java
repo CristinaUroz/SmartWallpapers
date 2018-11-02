@@ -8,7 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -36,7 +37,9 @@ public class ImageViewAdapter extends ArrayAdapter<Image> {
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewI);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewI);
 
-        img.setImageResource(image.getImageId());
+        //img.setImageResource(image.getImageId());
+        Picasso.get().load(image.getSrc()).into(img);
+
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override

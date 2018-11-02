@@ -2,15 +2,16 @@ package uroz.cristina.smartwallpapers;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.WallpaperInfo;
-import android.app.WallpaperManager;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Parcelable;
+import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +19,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewStub;
 import android.widget.AdapterView;
@@ -28,15 +28,20 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import com.kc.unsplash.Unsplash;
+import com.kc.unsplash.api.Order;
+import com.kc.unsplash.models.Photo;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -55,6 +60,18 @@ public class MainActivity extends AppCompatActivity {
     private Parcelable listState;
     private Parcelable gridState;
     private static final int MY_PERMISSIONS_REQUEST_SET_WALLPAPER = 0;
+
+    //unplash
+    private final String CLIENT_ID = "611b6a517cafa69285e513282257c6516061c205974a8a39a641cdb408f4d4ca";
+    private List<Photo> photoList = new ArrayList<>();
+    int f = 1;
+    int l = 10;
+    Order order = Order.POPULAR;
+    String imageDir = "Wallpaper";
+
+
+    Unsplash unsplash = new Unsplash(CLIENT_ID);
+
 
     static final int VIEW_MODE_LISTVIEW = 0;
     static final int VIEW_MODE_GRIDVIEW = 1;
@@ -160,9 +177,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private List<Image> getImageList(String category_title) {
+
+        unsplash.getPhotos(f, l, order, new Unsplash.OnPhotosLoadedListener() {
+            @Override
+            public void onComplete(List<Photo> photos) {
+                photoList = photos;
+            }
+
+            @Override
+            public void onError(String error) {
+            }
+        });
+
+
         imageList = new ArrayList<>();
-        for (int i=0;  i<15; i++) {
-            imageList.add(new Image(android.R.drawable.ic_menu_gallery, "Image "+ Integer.toString(i), "Descriptor", false, false));
+        for (int i=0;  i<photoList.size(); i++) {
+            Photo photo = photoList.get(i);
+            imageList.add(new Image(photo.getUrls().getRegular(), photo.getId(), photo.getCreatedAt(), false, false));
             //imageList.add(new Image(R.drawable.wallpaper, "Image "+ Integer.toString(i), "Descriptor", false, false, false));
         }
         return imageList;
@@ -228,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
         TextView Title =  (TextView) mView.findViewById(R.id.txtTitleD);
         TextView Autor =  (TextView) mView.findViewById(R.id.txtAutorD);
 
-        imageView.setImageResource(imageList.get(position).getImageId());
+        Picasso.get().load(imageList.get(position).getSrc()).into(imageView);
         Title.setText(imageList.get(position).getTitle());
         Autor.setText(imageList.get(position).getAutor());
 
@@ -286,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
 
     AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
         @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+        public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
 
             if(VIEW_MODE_LISTVIEW == currentViewMode){
 
@@ -304,7 +335,8 @@ public class MainActivity extends AppCompatActivity {
                     mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            setWallpaper();
+                            //setWallpaper("nothing");
+                            Toast.makeText(getApplicationContext(), "This option is temporaly unviable", Toast.LENGTH_SHORT).show();
                         }
                     });
 
@@ -333,7 +365,8 @@ public class MainActivity extends AppCompatActivity {
                     mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            setWallpaper();
+                            //setWallpaper("nothing");
+                            Toast.makeText(getApplicationContext(), "This option is temporaly unviable", Toast.LENGTH_SHORT).show();
                         }
                     });
 
@@ -362,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
                     mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            setWallpaper();
+                            setWallpaper(imageList.get(position).getSrc());
                         }
                     });
 
@@ -423,15 +456,41 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
                 break;
             case R.id.changeWallpaper:
-                setWallpaper();
+                //setWallpaper("nothing");
+                Toast.makeText(getApplicationContext(), "This option is temporaly unviable", Toast.LENGTH_SHORT).show();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void setWallpaper(){
-        setWallpaper p = new setWallpaper(this, R.drawable.wallpaper);
-        new Thread(p).start();
+    private void setWallpaper(String src) {
+        Picasso.get().load(src).into(srcToWallpaper(this, src));
+    }
+
+    private Target srcToWallpaper(Context context, String src) {
+        Log.d("picassoImageTarget", " picassoImageTarget");
+        //ContextWrapper cw = new ContextWrapper(context);
+        //final File directory = cw.getDir(imageDir, Context.MODE_PRIVATE); // path to /data/data/yourapp/app_imageDir
+        writeString(context, "ACTUAL_IMAGE", src);
+
+        return new Target() {
+
+            @Override
+            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
+                setWallpaper p = new setWallpaper(MainActivity.this,bitmap);
+                new Thread(p).start();
+            }
+
+            @Override
+            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                if (placeHolderDrawable != null) {}
+            }
+        };
     }
 
      //????????????????????????????
@@ -449,42 +508,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*
-    public void trytoapi(){
-        new Thread() {
-            @Override
-            public void run() {
-
-                Log.i("ttttttrrrraaaaiiiinnn", "Getting access token");
-                try {
-                    URL url = new URL("https://api.unsplash.com/photos?client_id=***");
-                    Log.i("", "Send GET url liked image" + url.toString());
-                    HttpURLConnection urlConnection = (HttpURLConnection) url
-                            .openConnection();
-                    urlConnection.setRequestMethod("GET");//by default is GET
-                    urlConnection.setDoInput(true);
-                    OutputStreamWriter writer = new OutputStreamWriter(
-                            urlConnection.getOutputStream());
-                    writer.write("url");
-                    writer.flush();
-                    String response =Utils.streamToString(urlConnection
-                            .getInputStream());
-                    Log.i("", "*?*?*?*?*?*?*?*?*?*?*? response *?*?*?*?*?*?*?*?*?*?*?" + response);
-                    JSONObject jsonObj = (JSONObject) new JSONTokener(response)
-                            .nextValue();
-
-                    tv.setText(jsonObj.toString());
-
-
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-            }
-        }.start();
+    public static void writeString(Context context, final String KEY, String property) {
+        SharedPreferences.Editor editor = context.getSharedPreferences("WALLPAPER", context.MODE_PRIVATE).edit();
+        editor.putString(KEY, property);
+        editor.commit();
     }
-*/
+
+    public static String readString(Context context, final String KEY) {
+        return context.getSharedPreferences("WALLPAPER", context.MODE_PRIVATE).getString(KEY, null);
+    }
+
 }
 
 
