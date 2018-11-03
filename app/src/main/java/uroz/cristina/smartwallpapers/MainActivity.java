@@ -3,15 +3,12 @@ package uroz.cristina.smartwallpapers;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Parcelable;
-import android.provider.SyncStateContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -29,18 +26,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kc.unsplash.Unsplash;
-import com.kc.unsplash.api.Order;
 import com.kc.unsplash.models.Photo;
+import com.kc.unsplash.models.Collection;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -53,8 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private GridViewAdapter gridViewAdapter;
     private ImageViewAdapter imageViewAdapter;
     private List<Quote> quoteList;
-    private List<Image> imageList;
-    private List<Category> categoryList;
+    private Map<String,List<Photo>> photoMap = new TreeMap<>();
+    private List<Collection> collectionsList = new ArrayList<>();
+    private String actual_collection;
     private int currentViewMode = 0;
     private Menu optionsMenu;
     private Parcelable listState;
@@ -62,16 +57,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_SET_WALLPAPER = 0;
 
     //unplash
-    private final String CLIENT_ID = "611b6a517cafa69285e513282257c6516061c205974a8a39a641cdb408f4d4ca";
-    private List<Photo> photoList = new ArrayList<>();
-    int f = 1;
-    int l = 10;
-    Order order = Order.POPULAR;
-    String imageDir = "Wallpaper";
+    private final String CLIENT_ID = "4254aee191dd7d4dec3ff36c75a61ffb50cdcd320d1c14942b1dec21f67159b9"; //Cristina's sesion Id
 
+    private int page = 1;
+    private int perPage = 10;
 
-    Unsplash unsplash = new Unsplash(CLIENT_ID);
-
+    private Unsplash unsplash = new Unsplash(CLIENT_ID);
 
     static final int VIEW_MODE_LISTVIEW = 0;
     static final int VIEW_MODE_GRIDVIEW = 1;
@@ -83,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
 
     //Change view menu item id
     static final int CHANGE_VIEW_MODE = 2;
+
+    static final String ACTUAL_IMAGE=  "ACTUAL_IMAGE";
+    static final String ACTUAL_QUOTE = "ACTUAL_QUOTE";
+    static final String ACTUAL_QUOTE_AUTOR = "ACTUAL_QUOTE_AUTOR";
 
     private long lastTouchTime = 0;
     private long currentTouchTime = 0;
@@ -111,10 +106,6 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.mylistview);
         gridView = findViewById(R.id.mygridview);
 
-        //get list of product;
-        getQuoteList();
-        getCategoryList();
-
         //Get current view mode in share reference
         SharedPreferences sharedPreferences = getSharedPreferences("viewMode", MODE_PRIVATE);
         currentViewMode = sharedPreferences.getInt("currentViewMode", VIEW_MODE_GRIDVIEW); //Default
@@ -123,7 +114,9 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemLongClickListener(onLongClick);
         gridView.setOnItemClickListener(onItemClick);
         gridView.setOnItemLongClickListener(onLongClick);
-        switchView();
+
+        getQuoteList();
+        getCollectionList();
     }
 
     private void switchView() {
@@ -156,12 +149,12 @@ public class MainActivity extends AppCompatActivity {
         }
         else if (VIEW_MODE_GRIDVIEW == currentViewMode)
        {
-            gridViewAdapter = new GridViewAdapter(this, R.layout.grid_item, categoryList);
+            gridViewAdapter = new GridViewAdapter(this, R.layout.grid_item, collectionsList);
             gridView.setAdapter(gridViewAdapter);
             gridView.onRestoreInstanceState(gridState);
         }
         else {
-            imageViewAdapter = new ImageViewAdapter(this, R.layout.grid_item, imageList);
+            imageViewAdapter = new ImageViewAdapter(this, R.layout.grid_item, photoMap.get(actual_collection));
             gridView.setAdapter(imageViewAdapter);
         }
     }
@@ -176,241 +169,70 @@ public class MainActivity extends AppCompatActivity {
         return quoteList;
     }
 
-    private List<Image> getImageList(String category_title) {
+    private void getPhotoList() {
 
-        unsplash.getPhotos(f, l, order, new Unsplash.OnPhotosLoadedListener() {
+        if (photoMap.containsKey(actual_collection)){
+
+            currentViewMode = VIEW_MODE_IMAGEVIEW;
+
+            gridState = listView.onSaveInstanceState();
+
+            optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
+
+            SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("currentViewMode",currentViewMode);
+            editor.commit();
+
+            setAdapters();
+        }
+
+        else {
+            unsplash.getCollectionPhotos(actual_collection, page, perPage, new Unsplash.OnPhotosLoadedListener() {
+
+                @Override
+                public void onComplete(List<Photo> list) {
+
+                    photoMap.put(actual_collection, list);
+                    currentViewMode = VIEW_MODE_IMAGEVIEW;
+
+                    gridState = listView.onSaveInstanceState();
+
+                    optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
+
+                    SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putInt("currentViewMode", currentViewMode);
+                    editor.commit();
+
+                    setAdapters();
+                }
+
+                @Override
+                public void onError(String error) {
+
+                }
+            });
+        }
+    }
+
+    private void getCollectionList() {
+
+        unsplash.getCollections(page,perPage,new Unsplash.OnCollectionsLoadedListener(){
             @Override
-            public void onComplete(List<Photo> photos) {
-                photoList = photos;
+            public void onComplete(List<Collection> collections) {
+                collectionsList = collections;
+                switchView();
             }
 
             @Override
             public void onError(String error) {
             }
+
+
         });
 
-
-        imageList = new ArrayList<>();
-        for (int i=0;  i<photoList.size(); i++) {
-            Photo photo = photoList.get(i);
-            imageList.add(new Image(photo.getUrls().getRegular(), photo.getId(), photo.getCreatedAt(), false, false));
-            //imageList.add(new Image(R.drawable.wallpaper, "Image "+ Integer.toString(i), "Descriptor", false, false, false));
-        }
-        return imageList;
     }
-
-    private List<Category> getCategoryList() {
-
-        categoryList = new ArrayList<>();
-        for (int i=0;  i<15; i++) {
-            categoryList.add(new Category(android.R.drawable.ic_menu_gallery, " Category "+ Integer.toString(i), false, false));
-            //categoryList.add(new Category(R.drawable.wallpaper, " Category "+ Integer.toString(i), false, false, false));
-        }
-
-        return categoryList;
-    }
-
-    AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener()
-    {
-        @Override
-        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l)
-        {
-
-            if(VIEW_MODE_LISTVIEW == currentViewMode){
-
-            }
-            else if (VIEW_MODE_GRIDVIEW == currentViewMode)
-            {
-                //getImageList(categoryList.get(position).getTitle());
-                getSupportActionBar().setTitle(categoryList.get(position).getTitle());
-                getImageList(categoryList.get(position).getTitle());
-                currentViewMode = VIEW_MODE_IMAGEVIEW;
-
-                gridState = listView.onSaveInstanceState();
-
-                optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
-
-                SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt("currentViewMode",currentViewMode);
-                editor.commit();
-
-                setAdapters();
-
-            }
-            else {
-                createDialog(position);
-            }
-            return false;
-        }
-    };
-
-    private void createDialog(final int position){
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-        View mView = getLayoutInflater().inflate(R.layout.image_dialog,null);
-        mBuilder.setView(mView);
-        final AlertDialog dialog = mBuilder.create();
-
-        ImageView imageView =  (ImageView) mView.findViewById(R.id.ImageViewD);
-        final ImageView like =  (ImageView) mView.findViewById(R.id.likeViewD);
-        ImageView delete =  (ImageView) mView.findViewById(R.id.deleteViewD);
-        ImageView previous =  (ImageView) mView.findViewById(R.id.previousViewD);
-        ImageView next =  (ImageView) mView.findViewById(R.id.nextViewD);
-        TextView Title =  (TextView) mView.findViewById(R.id.txtTitleD);
-        TextView Autor =  (TextView) mView.findViewById(R.id.txtAutorD);
-
-        Picasso.get().load(imageList.get(position).getSrc()).into(imageView);
-        Title.setText(imageList.get(position).getTitle());
-        Autor.setText(imageList.get(position).getAutor());
-
-        final Image image=imageList.get(position);
-
-
-        like.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                image.setLiked();
-                imageList.remove(image);
-                imageViewAdapter.notifyDataSetChanged();
-                dialog.cancel();
-                int new_position=position+1;
-                if (new_position>=imageList.size()){ new_position=0;}
-                createDialog(new_position);
-            }
-        });
-
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                image.setDeleted();
-                imageList.remove(image);
-                imageViewAdapter.notifyDataSetChanged();
-                dialog.cancel();
-                int new_position=position+1;
-                if (new_position>=imageList.size()){ new_position=0;}
-                createDialog(new_position);
-            }
-        });
-
-        previous.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.cancel();
-                int new_position=position-1;
-                if (new_position<0){ new_position=imageList.size()-1;}
-                createDialog(new_position);
-            }
-        });
-
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.cancel();
-                int new_position=position+1;
-                if (new_position>=imageList.size()){ new_position=0;}
-                createDialog(new_position);
-            }
-        });
-
-        dialog.show();
-    }
-
-    AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
-
-            if(VIEW_MODE_LISTVIEW == currentViewMode){
-
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < 250) {
-                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                    mBuilder.setMessage("Do you want to display this quote as wallpaper?");
-                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            //setWallpaper("nothing");
-                            Toast.makeText(getApplicationContext(), "This option is temporaly unviable", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                    quoteList.get(position).setLiked();
-                    listViewAdapter.notifyDataSetChanged();
-
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
-
-                }
-            }
-            else if (VIEW_MODE_GRIDVIEW == currentViewMode){
-
-
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < 250) {
-                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                    mBuilder.setMessage("Do you want to display a " +categoryList.get(position).getTitle()+" image as wallpaper?");
-                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            //setWallpaper("nothing");
-                            Toast.makeText(getApplicationContext(), "This option is temporaly unviable", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                    categoryList.get(position).setLiked();
-                    gridViewAdapter.notifyDataSetChanged();
-
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
-
-                }
-
-            }
-            else {
-
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < 250) {
-                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                    mBuilder.setMessage("Do you want to display this image as wallpaper?");
-                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            setWallpaper(imageList.get(position).getSrc());
-                        }
-                    });
-
-                    imageList.get(position).setLiked();
-                    imageViewAdapter.notifyDataSetChanged();
-
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
-
-                }
-
-            }
-
-        }
-    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -446,9 +268,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.info:
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
 
-                mBuilder.setMessage("Double click to display a quote/image/category image as a wallpaper. " +
-                        "\n\nLong click to enter in a category " +
-                        "\n\nLong click to view an image " +
+                mBuilder.setMessage("Double click to display a quote/photo/collection photo as a wallpaper. " +
+                        "\n\nLong click to enter in a collection " +
+                        "\n\nLong click to view an photo " +
                         "\n\nClick on the top right icon to change view to quotes/categories " +
                         "\n\nClick on the top left icon to change wallpaper");
 
@@ -456,28 +278,27 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
                 break;
             case R.id.changeWallpaper:
-                //setWallpaper("nothing");
+                //setWallpaper();
                 Toast.makeText(getApplicationContext(), "This option is temporaly unviable", Toast.LENGTH_SHORT).show();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void setWallpaper(String src) {
-        Picasso.get().load(src).into(srcToWallpaper(this, src));
+    private void setWallpaper() {
+        String src = readString(this, ACTUAL_IMAGE);
+        String quote = readString(this, ACTUAL_QUOTE);
+        String quote_autor = readString(this, ACTUAL_QUOTE_AUTOR);
+        Picasso.get().load(src).into(srcToWallpaper(this, src,quote,quote_autor));
     }
 
-    private Target srcToWallpaper(Context context, String src) {
+    private Target srcToWallpaper(Context context, String src, final String quote, final String quote_autor) {
         Log.d("picassoImageTarget", " picassoImageTarget");
-        //ContextWrapper cw = new ContextWrapper(context);
-        //final File directory = cw.getDir(imageDir, Context.MODE_PRIVATE); // path to /data/data/yourapp/app_imageDir
-        writeString(context, "ACTUAL_IMAGE", src);
-
         return new Target() {
 
             @Override
             public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
-                setWallpaper p = new setWallpaper(MainActivity.this,bitmap);
+                setWallpaper p = new setWallpaper(MainActivity.this,bitmap, quote, quote_autor);
                 new Thread(p).start();
             }
 
@@ -517,6 +338,208 @@ public class MainActivity extends AppCompatActivity {
     public static String readString(Context context, final String KEY) {
         return context.getSharedPreferences("WALLPAPER", context.MODE_PRIVATE).getString(KEY, null);
     }
+
+    private void createDialog(final int position){
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+        View mView = getLayoutInflater().inflate(R.layout.image_dialog,null);
+        mBuilder.setView(mView);
+        final AlertDialog dialog = mBuilder.create();
+
+        ImageView imageView =  (ImageView) mView.findViewById(R.id.ImageViewD);
+        final ImageView like =  (ImageView) mView.findViewById(R.id.likeViewD);
+        ImageView delete =  (ImageView) mView.findViewById(R.id.deleteViewD);
+        ImageView previous =  (ImageView) mView.findViewById(R.id.previousViewD);
+        ImageView next =  (ImageView) mView.findViewById(R.id.nextViewD);
+        TextView Title =  (TextView) mView.findViewById(R.id.txtTitleD);
+        TextView Autor =  (TextView) mView.findViewById(R.id.txtAutorD);
+
+        Picasso.get().load(photoMap.get(actual_collection).get(position).getUrls().getRegular()).into(imageView);
+        Title.setText(photoMap.get(actual_collection).get(position).getUser().getName());
+        Autor.setText("");
+
+        final Photo photo=photoMap.get(actual_collection).get(position);
+
+
+        like.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                photoMap.get(actual_collection).remove(photo);
+                imageViewAdapter.notifyDataSetChanged();
+                dialog.cancel();
+                int new_position=position+1;
+                if (new_position>=photoMap.get(actual_collection).size()){ new_position=0;}
+                createDialog(new_position);
+            }
+        });
+
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                photoMap.get(actual_collection).remove(photo);
+                imageViewAdapter.notifyDataSetChanged();
+                dialog.cancel();
+                int new_position=position+1;
+                if (new_position>=photoMap.get(actual_collection).size()){ new_position=0;}
+                createDialog(new_position);
+            }
+        });
+
+        previous.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+                int new_position=position-1;
+                if (new_position<0){ new_position=photoMap.get(actual_collection).size()-1;}
+                createDialog(new_position);
+            }
+        });
+
+        next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.cancel();
+                int new_position=position+1;
+                if (new_position>=photoMap.get(actual_collection).size()){ new_position=0;}
+                createDialog(new_position);
+            }
+        });
+
+        dialog.show();
+    }
+
+    AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener()
+    {
+        @Override
+        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l)
+        {
+
+            if(VIEW_MODE_LISTVIEW == currentViewMode){
+
+            }
+            else if (VIEW_MODE_GRIDVIEW == currentViewMode)
+            {
+                getSupportActionBar().setTitle(collectionsList.get(position).getTitle());
+                actual_collection=Integer.toString(collectionsList.get(position).getId());
+                getPhotoList();
+            }
+            else {
+                createDialog(position);
+            }
+            return false;
+        }
+    };
+
+    AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
+
+            if(VIEW_MODE_LISTVIEW == currentViewMode){
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 500) {
+
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                    mBuilder.setMessage("Do you want to display this quote as wallpaper?");
+                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            writeString(MainActivity.this, ACTUAL_QUOTE,quoteList.get(position).getTitle());
+                            writeString(MainActivity.this, ACTUAL_QUOTE_AUTOR,quoteList.get(position).getAutor());
+                            setWallpaper();
+                        }
+                    });
+
+                    quoteList.get(position).setLiked();
+                    listViewAdapter.notifyDataSetChanged();
+
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+
+                }
+            }
+            else if (VIEW_MODE_GRIDVIEW == currentViewMode){
+
+
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 500) {
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                    mBuilder.setMessage("Do you want to display a " +collectionsList.get(position).getTitle()+" photo as wallpaper?");
+                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            actual_collection= Integer.toString(collectionsList.get(position).getId());
+                            if (photoMap.containsKey(actual_collection)){
+                                int pos = (int) Math.floor(Math.random() * (photoMap.get(actual_collection).size()));
+                                writeString(MainActivity.this, ACTUAL_IMAGE,photoMap.get(actual_collection).get(pos).getUrls().getRegular());
+                                setWallpaper();
+                            }
+
+                            else {
+                                unsplash.getCollectionPhotos(actual_collection, page, perPage, new Unsplash.OnPhotosLoadedListener() {
+
+                                    @Override
+                                    public void onComplete(List<Photo> list) {
+                                        int pos = (int) Math.floor(Math.random() * (list.size()));
+                                        photoMap.put(actual_collection,list);
+                                        writeString(MainActivity.this, ACTUAL_IMAGE,list.get(pos).getUrls().getRegular());
+                                        setWallpaper();
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+
+                                    }
+                                });
+
+                            }
+                        }
+                    });
+
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+                }
+            }
+            else {
+
+                lastTouchTime = currentTouchTime;
+                currentTouchTime = System.currentTimeMillis();
+
+                if (currentTouchTime - lastTouchTime < 500) {
+                    //Toast.makeText(getApplicationContext(), quoteList.get(position).getTitle() + " star", Toast.LENGTH_SHORT).show();
+                    lastTouchTime = 0;
+                    currentTouchTime = 0;
+
+                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                    mBuilder.setMessage("Do you want to display this photo as wallpaper?");
+                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            writeString(MainActivity.this, ACTUAL_IMAGE, photoMap.get(actual_collection).get(position).getUrls().getRegular());
+                            setWallpaper();
+                        }
+                    });
+
+                    AlertDialog dialog = mBuilder.create();
+                    dialog.show();
+
+                }
+
+            }
+
+        }
+    };
 
 }
 

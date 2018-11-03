@@ -10,16 +10,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.kc.unsplash.models.Collection;
+
 import java.util.List;
 
-public class GridViewAdapter extends ArrayAdapter <Category>{
+public class GridViewAdapter extends ArrayAdapter <Collection>{
 
-    static final int icon_like_off=android.R.drawable.presence_invisible;
-    static final int icon_like_on=android.R.drawable.presence_online;
-    static final int icon_favorite_off=android.R.drawable.star_big_on;
-    static final int icon_favorite_on=android.R.drawable.star_big_off;
-
-    public GridViewAdapter(@NonNull Context context, int resource, @NonNull List<Category> objects) {
+    public GridViewAdapter(@NonNull Context context, int resource, @NonNull List<Collection> objects) {
         super(context, resource, objects);
     }
 
@@ -31,20 +28,19 @@ public class GridViewAdapter extends ArrayAdapter <Category>{
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.grid_item, null);
         }
-        final Category category = getItem(position);
+        final Collection collection = getItem(position);
         ImageView img = (ImageView) v.findViewById(R.id.ImageViewG);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewG);
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewG);
         TextView txtTitle = (TextView) v.findViewById(R.id.txtTitleG);
 
-        img.setImageResource(category.getImageId());
-        txtTitle.setText(category.getTitle());
+        com.squareup.picasso.Picasso.get().load(collection.getCoverPhoto().getUrls().getRegular()).into(img);
+        txtTitle.setText(collection.getTitle());
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                category.setLiked();
-                remove(category);
+                remove(collection);
             }
         });
 
@@ -52,8 +48,7 @@ public class GridViewAdapter extends ArrayAdapter <Category>{
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                category.setDeleted();
-                remove(category);
+                remove(collection);
             }
         });
 

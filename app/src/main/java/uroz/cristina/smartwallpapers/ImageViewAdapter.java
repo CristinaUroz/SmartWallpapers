@@ -9,18 +9,14 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
+import com.kc.unsplash.models.Photo;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-public class ImageViewAdapter extends ArrayAdapter<Image> {
+public class ImageViewAdapter extends ArrayAdapter<Photo> {
 
-    static final int icon_like_off=android.R.drawable.presence_invisible;
-    static final int icon_like_on=android.R.drawable.presence_online;
-    static final int icon_favorite_off=android.R.drawable.star_big_on;
-    static final int icon_favorite_on=android.R.drawable.star_big_off;
-
-    public ImageViewAdapter(@NonNull Context context, int resource, @NonNull List<Image> objects) {
+    public ImageViewAdapter(@NonNull Context context, int resource, @NonNull List<Photo> objects) {
         super(context, resource, objects);
     }
 
@@ -32,28 +28,28 @@ public class ImageViewAdapter extends ArrayAdapter<Image> {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.image_item, null);
         }
-        final Image image = getItem(position);
+        final Photo photo = getItem(position);
         ImageView img = (ImageView) v.findViewById(R.id.ImageViewI);
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewI);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewI);
 
         //img.setImageResource(image.getImageId());
-        Picasso.get().load(image.getSrc()).into(img);
+        Picasso.get().load(photo.getUrls().getRegular()).into(img);
 
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                image.setLiked();
-                remove(image);
+                //image.setLiked();
+                remove(photo);
             }
         });
 
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                image.setDeleted();
-                remove(image);
+                //image.setDeleted();
+                remove(photo);
             }
         });
 

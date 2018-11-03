@@ -14,11 +14,6 @@ import java.util.List;
 
 public class ListViewAdapter extends ArrayAdapter<Quote> {
 
-    static final int icon_like_off=android.R.drawable.presence_invisible;
-    static final int icon_like_on=android.R.drawable.presence_online;
-    static final int icon_favorite_off=android.R.drawable.star_big_on;
-    static final int icon_favorite_on=android.R.drawable.star_big_off;
-
     public ListViewAdapter(@NonNull Context context, int resource, @NonNull List<Quote> objects) {
         super(context, resource, objects);
     }
