@@ -16,8 +16,11 @@ import java.util.List;
 
 public class GridViewAdapter extends ArrayAdapter <Collection>{
 
+    private Context context;
+
     public GridViewAdapter(@NonNull Context context, int resource, @NonNull List<Collection> objects) {
         super(context, resource, objects);
+        this.context=context;
     }
 
     @NonNull
@@ -40,6 +43,9 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(context instanceof MainActivity){
+                    ((MainActivity)context).collectionLiked(collection);
+                }
                 remove(collection);
             }
         });
@@ -48,6 +54,10 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                if(context instanceof MainActivity){
+                    ((MainActivity)context).collectionDeleted(collection);
+                }
                 remove(collection);
             }
         });

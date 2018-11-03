@@ -16,8 +16,11 @@ import java.util.List;
 
 public class ImageViewAdapter extends ArrayAdapter<Photo> {
 
+    private Context context;
+
     public ImageViewAdapter(@NonNull Context context, int resource, @NonNull List<Photo> objects) {
         super(context, resource, objects);
+        this.context=context;
     }
 
     @NonNull
@@ -33,14 +36,15 @@ public class ImageViewAdapter extends ArrayAdapter<Photo> {
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewI);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewI);
 
-        //img.setImageResource(image.getImageId());
         Picasso.get().load(photo.getUrls().getRegular()).into(img);
 
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //image.setLiked();
+                if(context instanceof MainActivity){
+                    ((MainActivity)context).photoLiked(photo);
+                }
                 remove(photo);
             }
         });
@@ -48,14 +52,14 @@ public class ImageViewAdapter extends ArrayAdapter<Photo> {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //image.setDeleted();
+                if(context instanceof MainActivity){
+                    ((MainActivity)context).photoDeleted(photo);
+                }
                 remove(photo);
             }
         });
 
         return v;
-
-
 
     }
 

@@ -28,6 +28,17 @@
         android:layout_gravity="center">
 
         <ImageView
+            android:id="@+id/ImageViewD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal"
+            app:srcCompat="@android:drawable/btn_plus"
+            tools:layout_editor_absoluteX="164dp"
+            tools:layout_editor_absoluteY="165dp" />
+
+        <ImageView
             android:id="@+id/nextViewD"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -66,16 +77,6 @@
             android:foregroundGravity="center_vertical"
             app:srcCompat="@android:drawable/ic_media_previous" />
 
-        <ImageView
-            android:id="@+id/ImageViewD"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="center_horizontal"
-            app:srcCompat="@android:drawable/btn_plus"
-            tools:layout_editor_absoluteX="164dp"
-            tools:layout_editor_absoluteY="165dp" />
     </RelativeLayout>
 
 </LinearLayout>

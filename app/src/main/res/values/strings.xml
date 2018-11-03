@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">SmartWallpapers</string>
     <string name="ok">Ok</string>
+    <string name="info">Information</string>
+    <string name="automatic">Automatic wallpaper change</string>
+    <string name="settings">Settings</string>
+    <string name="photo_refresh_interval">SET PHOTO REFRESH INTERVAL</string>
+    <string name="Refresh_info">Enter your value in minutes. The minimum and the maxim values are 5 and 300 minutes.</string>
+    <string name="quote_refresh_interval">SET QUOTE REFRESH INTERVAL</string>
+    <string name="apply">apply</string>
+    <string name="enable_auto_refreshing">Enable auto-refreshing wallpaper</string>
 </resources>

@@ -14,8 +14,11 @@ import java.util.List;
 
 public class ListViewAdapter extends ArrayAdapter<Quote> {
 
+    private Context context;
+
     public ListViewAdapter(@NonNull Context context, int resource, @NonNull List<Quote> objects) {
         super(context, resource, objects);
+        this.context=context;
     }
 
     @NonNull
@@ -38,7 +41,9 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                quote.setLiked();
+                if(context instanceof MainActivity){
+                    ((MainActivity)context).quoteLiked(quote);
+                }
                 remove(quote);
             }
         });
@@ -46,7 +51,9 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                quote.setDeleted();
+                if(context instanceof MainActivity){
+                    ((MainActivity)context).quoteDeleted(quote);
+                }
                 remove(quote);
             }
         });

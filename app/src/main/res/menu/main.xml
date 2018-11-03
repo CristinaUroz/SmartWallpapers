@@ -11,15 +11,6 @@
         app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
         app:showAsAction="always" />
     <item
-        android:id="@+id/info"
-        android:checkable="true"
-        android:enabled="true"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="info"
-        android:visible="true"
-        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
-        app:showAsAction="always" />
-    <item
         android:id="@+id/change_view"
         android:checkable="true"
         android:enabled="true"
@@ -27,6 +18,22 @@
         android:title="change_view"
         android:visible="true"
         app:showAsAction="never|always" />
+    <item
+        android:id="@+id/info"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="@string/info"
+        android:visible="true"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/settings"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="@string/settings"
+        android:visible="true"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="ifRoom" />
 
 
 </menu>

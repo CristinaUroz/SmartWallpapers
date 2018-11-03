@@ -24,7 +24,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff;
 
-public class setWallpaper implements Runnable {
+public class SetWallpaper implements Runnable {
 
 
     private Context context;
@@ -33,7 +33,7 @@ public class setWallpaper implements Runnable {
     private String quote_autor;
 
 
-    setWallpaper(Context context, Bitmap bitmap, String quote, String quote_autor) {
+    SetWallpaper(Context context, Bitmap bitmap, String quote, String quote_autor) {
 
         this.context = context;
         this.bitmap = bitmap;
@@ -52,12 +52,20 @@ public class setWallpaper implements Runnable {
 
         Paint paint = new Paint();
         paint.setColor(Color.WHITE); // Text Color
+        paint.setShadowLayer(5,0,0,Color.GRAY);
         paint.setTextSize(30); // Text Size
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
         paint.setTextAlign(Paint.Align.CENTER);
         // some more settings...
         canvas.drawBitmap(bitmap, 0, 0, paint);
-        canvas.drawText(quote + "\n -" + quote_autor + "-", canvas.getWidth()/2, canvas.getHeight()/3, paint);
+        canvas.drawText(quote, canvas.getWidth()/2, canvas.getHeight()/3, paint);
+
+        paint.setTextSize(24); // Text Size
+        paint.setShadowLayer(3,0,0,Color.GRAY);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
+        paint.setTextAlign(Paint.Align.LEFT);
+
+        canvas.drawText(quote_autor, canvas.getWidth()/2, canvas.getHeight()/3*2, paint);
 
         try{
             manager.setBitmap(bitmap);
