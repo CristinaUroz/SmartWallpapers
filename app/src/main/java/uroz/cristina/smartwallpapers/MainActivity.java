@@ -43,9 +43,7 @@ import static java.lang.Thread.sleep;
 
 public class MainActivity extends AppCompatActivity {
 
-    //TODO: CRISTINA Set screen orientation changeable
-
-    //TODO: CRISTINA Make views look better (change icons, etc...)
+    //TODO: CRISTINA Make a category disapear if doesn't have any photo | Set screen orientation changeable | CRISTINA Make views look better (change icons, etc...)
 
     //TODO: ALL Translate words in our language
 
