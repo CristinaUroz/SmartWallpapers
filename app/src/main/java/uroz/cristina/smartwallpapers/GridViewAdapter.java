@@ -26,12 +26,15 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
         View v = convertView;
         if (null == v) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.grid_item, null);
         }
+
         final Collection collection = getItem(position);
+
         ImageView img = (ImageView) v.findViewById(R.id.ImageViewG);
         final ImageView like = (ImageView) v.findViewById(R.id.likeViewG);
         ImageView delete = (ImageView) v.findViewById(R.id.deleteViewG);
@@ -50,7 +53,6 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
             }
         });
 
-
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -64,5 +66,4 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
 
         return v;
     }
-
 }

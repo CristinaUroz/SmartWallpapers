@@ -1,6 +1,7 @@
 package uroz.cristina.smartwallpapers;
 
 public class Quote {
+
     private String title;
     private String autor;
 
@@ -14,16 +15,8 @@ public class Quote {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getAutor() {
         return autor;
-    }
-
-    public void setAutor(String descriptor) {
-        this.autor = autor;
     }
 
 }

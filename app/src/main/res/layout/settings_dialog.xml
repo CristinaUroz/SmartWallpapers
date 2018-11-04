@@ -48,7 +48,7 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/Refresh_info"
+            android:text="@string/refresh_info"
             android:paddingRight="16dp"
             android:paddingLeft="16dp"
             android:paddingTop="8dp"

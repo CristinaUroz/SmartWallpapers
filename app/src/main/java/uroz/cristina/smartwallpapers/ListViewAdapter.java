@@ -24,12 +24,15 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
         View v=convertView;
         if(null == v){
             LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.list_item, null);
         }
+
         final Quote quote= getItem(position);
+
         final ImageView like= (ImageView) v.findViewById(R.id.likeViewL);
         ImageView delete= (ImageView) v.findViewById(R.id.deleteViewL);
         TextView txtTitle= (TextView) v.findViewById(R.id.txtTitleL);
