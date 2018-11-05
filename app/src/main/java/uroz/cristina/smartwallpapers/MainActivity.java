@@ -867,7 +867,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            Log.d("Cris", "AutomaticRefreshing - run: Start");
             while (!stopThreadList.get(stopThreadPos)) {
                 try {
                     sleep(minutes * 60000);
