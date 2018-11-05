@@ -11,9 +11,9 @@
     <string name="display_quote">Do you want to display this quote as wallpaper?</string>
     <string name="display_collection">Do you want to display a %s photo as wallpaper?</string>
     <string name="display_photo">Do you want to display this photo as wallpaper?</string>
-    <string name="app_info">Double click to display a quote/photo/collection photo as a wallpaper.
-                        \n\nLong click to enter in a collection
-                        \n\nLong click to view an photo
+    <string name="app_info">Long click to display a quote/photo/collection photo as a wallpaper.
+                        \n\nClick to enter in a collection
+                        \n\nClick to view an photo
                         \n\nClick on the top middle icon to change view to quotes/categories
                         \n\nClick on the top left icon to change wallpaper</string>
 </resources>

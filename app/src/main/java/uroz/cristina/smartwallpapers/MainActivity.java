@@ -6,11 +6,11 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,8 +26,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.kc.unsplash.Unsplash;
-import com.kc.unsplash.models.Photo;
 import com.kc.unsplash.models.Collection;
+import com.kc.unsplash.models.Photo;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import static java.lang.Thread.sleep;
 
 public class MainActivity extends AppCompatActivity {
@@ -98,11 +99,6 @@ public class MainActivity extends AppCompatActivity {
     static final String ACTUAL_QUOTE_AUTOR = "ACTUAL_QUOTE_AUTOR"; //To save the last autor of the quote image set from this app
     static final String PHOTO_INTERVAL = "PHOTO_INTERVAL"; //To save the refresh interval minutes
     static final String REFRESHING = "REFRESHING"; //To save if the user wants the wallpaper auto-refresh
-
-    //Variables to detect doubleclick
-    private long lastTouchTime = 0;
-    private long currentTouchTime = 0;
-    private long miliseconds_second_click=500;
 
     //Variables of the thread to do the wallpaper auto-refresh
     private List<Boolean> stopThreadList = new ArrayList<>();
@@ -425,6 +421,7 @@ public class MainActivity extends AppCompatActivity {
                 collectionsList = collections;
                 switchView();
             }
+
             @Override
             public void onError(String error) {
             }
@@ -500,6 +497,7 @@ public class MainActivity extends AppCompatActivity {
                         likedPohtos.add(list.get(i).getUrls().getRegular());
                     }
                 }
+
                 @Override
                 public void onError(String error) {
 
@@ -724,7 +722,109 @@ public class MainActivity extends AppCompatActivity {
     //On item long click listener
     AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener() {
         @Override
-        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
+        public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, long l) {
+
+            if (VIEW_MODE_LISTVIEW == currentViewMode) {
+
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                mBuilder.setMessage(R.string.display_quote); //Creates a dialog asking the user if he wants to display this as a wallpaper
+                mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        writeString(MainActivity.this, ACTUAL_QUOTE, quoteList.get(position).getTitle());
+                        writeString(MainActivity.this, ACTUAL_QUOTE_AUTOR, quoteList.get(position).getAutor());
+                        if (enable_auto) { //If the auto-refreshing is enabled the times starts again
+                            stopThread();
+                            setWallpaper();
+                            startThread();
+                        } else {
+                            setWallpaper();
+                        }
+                    }
+                });
+
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();
+
+            } else if (VIEW_MODE_GRIDVIEW == currentViewMode) {
+
+
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                mBuilder.setMessage(String.format(getString(R.string.display_collection), collectionsList.get(position).getTitle()));
+                mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        actual_collection = Integer.toString(collectionsList.get(position).getId());
+                        if (photoMap.containsKey(actual_collection)) {
+                            int pos = (int) Math.floor(Math.random() * (photoMap.get(actual_collection).size())); //Get a random position of an image in the collection
+                            writeString(MainActivity.this, ACTUAL_IMAGE, photoMap.get(actual_collection).get(pos).getUrls().getRegular());
+                            if (enable_auto) {
+                                stopThread();
+                                setWallpaper();
+                                startThread();
+                            } else {
+                                setWallpaper();
+                            }
+                        } else { //If we haven't read the photos of this collection before
+                            unsplash.getCollectionPhotos(actual_collection, page, perPage, new Unsplash.OnPhotosLoadedListener() {
+
+                                @Override
+                                public void onComplete(List<Photo> list) {
+                                    int pos = (int) Math.floor(Math.random() * (list.size()));
+                                    photoMap.put(actual_collection, list);
+                                    writeString(MainActivity.this, ACTUAL_IMAGE, list.get(pos).getUrls().getRegular());
+                                    if (enable_auto) {
+                                        stopThread();
+                                        setWallpaper();
+                                        startThread();
+                                    } else {
+                                        setWallpaper();
+                                    }
+                                }
+
+                                @Override
+                                public void onError(String error) {
+                                }
+                            });
+                        }
+                    }
+                });
+
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();
+
+            } else {
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                mBuilder.setMessage(R.string.display_photo);
+                mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        writeString(MainActivity.this, ACTUAL_IMAGE, photoMap.get(actual_collection).get(position).getUrls().getRegular());
+                        if (enable_auto) {
+                            stopThread();
+                            setWallpaper();
+                            startThread();
+                        } else {
+                            setWallpaper();
+                        }
+                    }
+                });
+
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();
+            }
+            return false;
+        }
+    };
+
+    //On item click listener
+    AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
+
             if (VIEW_MODE_GRIDVIEW == currentViewMode) {
 
                 getSupportActionBar().setTitle(collectionsList.get(position).getTitle());
@@ -744,140 +844,15 @@ public class MainActivity extends AppCompatActivity {
                 actual_collection_position = position;
                 getPhotoList();
 
-            } else {
+            } else if (VIEW_MODE_IMAGEVIEW == currentViewMode) {
                 createDialog(position);
             }
-            return false;
+
         }
+
     };
 
-    //On item click listener
-    AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
-
-            if (VIEW_MODE_LISTVIEW == currentViewMode) {
-
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < miliseconds_second_click) {//Second click
-
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                    mBuilder.setMessage(R.string.display_quote); //Creates a dialog asking the user if he wants to display this as a wallpaper
-                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            writeString(MainActivity.this, ACTUAL_QUOTE, quoteList.get(position).getTitle());
-                            writeString(MainActivity.this, ACTUAL_QUOTE_AUTOR, quoteList.get(position).getAutor());
-                            if (enable_auto) { //If the auto-refreshing is enabled the times starts again
-                                stopThread();
-                                setWallpaper();
-                                startThread();
-                            } else {
-                                setWallpaper();
-                            }
-                        }
-                    });
-
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
-                }
-
-            } else if (VIEW_MODE_GRIDVIEW == currentViewMode) {
-
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < miliseconds_second_click) {
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                    mBuilder.setMessage(String.format(getString(R.string.display_collection),collectionsList.get(position).getTitle()));
-                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            actual_collection = Integer.toString(collectionsList.get(position).getId());
-                            if (photoMap.containsKey(actual_collection)) {
-                                int pos = (int) Math.floor(Math.random() * (photoMap.get(actual_collection).size())); //Get a random position of an image in the collection
-                                writeString(MainActivity.this, ACTUAL_IMAGE, photoMap.get(actual_collection).get(pos).getUrls().getRegular());
-                                if (enable_auto) {
-                                    stopThread();
-                                    setWallpaper();
-                                    startThread();
-                                } else {
-                                    setWallpaper();
-                                }
-                            } else { //If we haven't read the photos of this collection before
-                                unsplash.getCollectionPhotos(actual_collection, page, perPage, new Unsplash.OnPhotosLoadedListener() {
-
-                                    @Override
-                                    public void onComplete(List<Photo> list) {
-                                        int pos = (int) Math.floor(Math.random() * (list.size()));
-                                        photoMap.put(actual_collection, list);
-                                        writeString(MainActivity.this, ACTUAL_IMAGE, list.get(pos).getUrls().getRegular());
-                                        if (enable_auto) {
-                                            stopThread();
-                                            setWallpaper();
-                                            startThread();
-                                        } else {
-                                            setWallpaper();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onError(String error) {
-                                    }
-                                });
-                            }
-                        }
-                    });
-
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
-                }
-
-            } else {
-
-                lastTouchTime = currentTouchTime;
-                currentTouchTime = System.currentTimeMillis();
-
-                if (currentTouchTime - lastTouchTime < miliseconds_second_click) {
-
-                    lastTouchTime = 0;
-                    currentTouchTime = 0;
-
-                    AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                    mBuilder.setMessage(R.string.display_photo);
-                    mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            writeString(MainActivity.this, ACTUAL_IMAGE, photoMap.get(actual_collection).get(position).getUrls().getRegular());
-                            if (enable_auto) {
-                                stopThread();
-                                setWallpaper();
-                                startThread();
-                            } else {
-                                setWallpaper();
-                            }
-                        }
-                    });
-
-                    AlertDialog dialog = mBuilder.create();
-                    dialog.show();
-                }
-            }
-        }
-    };
-
-    //_____________________________________
+//_____________________________________
 
     //Class to do the wallpaper auto-refreshing
     public class AutomaticRefreshing implements Runnable {
