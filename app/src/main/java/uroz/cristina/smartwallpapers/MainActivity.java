@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Menu variables
     private Menu optionsMenu;
-    static final int CHANGE_VIEW_MODE = 2; //Change view menu item id
+    static final int CHANGE_VIEW_MODE = 1; //Change view menu item id
 
     //Photos, collections and quotes variables
     private List<Quote> quoteList; //List of all the quotes that will be displayed
@@ -438,18 +438,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (photoMap.containsKey(actual_collection)) {
 
-            currentViewMode = VIEW_MODE_IMAGEVIEW;
-
-            gridState = listView.onSaveInstanceState();
-
-            optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
-
-            SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt("currentViewMode", currentViewMode);
-            editor.commit();
-
             setAdapters();
+
         } else {
             unsplash.getCollectionPhotos(actual_collection, page, perPage, new Unsplash.OnPhotosLoadedListener() {
 
@@ -457,16 +447,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onComplete(List<Photo> list) {
 
                     photoMap.put(actual_collection, list);
-                    currentViewMode = VIEW_MODE_IMAGEVIEW;
-
-                    gridState = listView.onSaveInstanceState();
-
-                    optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
-
-                    SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putInt("currentViewMode", currentViewMode);
-                    editor.commit();
 
                     setAdapters();
                 }
@@ -488,11 +468,12 @@ public class MainActivity extends AppCompatActivity {
 
         likedPohtos.add(photo.getUrls().getRegular()); //Photo's source it's saved at the likes list
 
-        if (photoMap.get(actual_collection).size() == 0) { //If the photo was the last one of the collection the view will return to the collection grid
+        if (photoMap.get(actual_collection).size() == 1) { //If the photo was the last one of the collection the view will return to the collection grid
             photoMap.remove(actual_collection);
             collectionsList.remove(actual_collection_position);
             currentViewMode = VIEW_MODE_GRIDVIEW;
             gridViewAdapter.notifyDataSetChanged();
+            optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_list);
             switchView();
             return true;
         }
@@ -543,11 +524,12 @@ public class MainActivity extends AppCompatActivity {
 
         //TODO: MARIUS What happens when the users deletes this photo?
 
-        if (photoMap.get(actual_collection).size() == 0) {//If the photo was the last one of the collection the view will return to the collection grid
+        if (photoMap.get(actual_collection).size() == 1) {//If the photo was the last one of the collection the view will return to the collection grid
             photoMap.remove(actual_collection);
             collectionsList.remove(actual_collection_position);
             currentViewMode = VIEW_MODE_GRIDVIEW;
             gridViewAdapter.notifyDataSetChanged();
+            optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_list);
             switchView();
             return true;
         }
@@ -743,13 +725,25 @@ public class MainActivity extends AppCompatActivity {
     AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener() {
         @Override
         public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
-            if (VIEW_MODE_LISTVIEW == currentViewMode) {
+            if (VIEW_MODE_GRIDVIEW == currentViewMode) {
 
-            } else if (VIEW_MODE_GRIDVIEW == currentViewMode) {
                 getSupportActionBar().setTitle(collectionsList.get(position).getTitle());
+
+                currentViewMode = VIEW_MODE_IMAGEVIEW;
+
+                gridState = listView.onSaveInstanceState();
+
+                optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
+
+                SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("currentViewMode", currentViewMode);
+                editor.commit();
+
                 actual_collection = Integer.toString(collectionsList.get(position).getId());
                 actual_collection_position = position;
                 getPhotoList();
+
             } else {
                 createDialog(position);
             }
