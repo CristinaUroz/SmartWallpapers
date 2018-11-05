@@ -867,24 +867,26 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
+            Log.d("Cris", "AutomaticRefreshing - run: Start");
             while (!stopThreadList.get(stopThreadPos)) {
                 try {
                     sleep(minutes * 60000);
                 } catch (InterruptedException e) {
                     Log.e(TAG, "AutomaticRefreshing - run: InterruptedException");
                 }
+                if (!stopThreadList.get(stopThreadPos)) {
+                    Handler uiHandler = new Handler(Looper.getMainLooper());
+                    uiHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            getRandom();
+                        }
+                    });
+                } else {
+                    return;
+                }
             }
-            if (!stopThreadList.get(stopThreadPos)) {
-                Handler uiHandler = new Handler(Looper.getMainLooper());
-                uiHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        getRandom();
-                    }
-                });
-            } else {
-                return;
-            }
+            return;
         }
     }
 
