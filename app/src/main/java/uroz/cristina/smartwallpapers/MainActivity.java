@@ -6,12 +6,15 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,14 +23,18 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kc.unsplash.Unsplash;
+import com.kc.unsplash.api.Order;
 import com.kc.unsplash.models.Collection;
 import com.kc.unsplash.models.Photo;
+import com.kc.unsplash.models.SearchResults;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
@@ -37,6 +44,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -44,7 +52,7 @@ import static java.lang.Thread.sleep;
 
 public class MainActivity extends AppCompatActivity {
 
-    //TODO: CRISTINA Set screen orientation changeable | Make views look better (change icons, etc...)
+    //TODO: CRISTINA Set screen orientation changeable
 
     //TODO: ALL Translate words in our language
 
@@ -66,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     // Menu variables
     private Menu optionsMenu;
     static final int CHANGE_VIEW_MODE = 1; //Change view menu item id
+    static final int SEARCH = 4; //Change view menu item id
 
     //Photos, collections and quotes variables
     private List<Quote> quoteList; //List of all the quotes that will be displayed
@@ -82,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String FILENAME_QUOTES = "liked_quotes.txt";
     private static final int MAX_BYTES = 8000;
     private final int page = 1;
-    private final int perPage = 10; //Images and collections for page that will be diplayed
+    private final int perPage = 30; //Images and collections for page that will be diplayed
 
     //Unplash variables
     private final String CLIENT_ID = "4254aee191dd7d4dec3ff36c75a61ffb50cdcd320d1c14942b1dec21f67159b9"; //Cristina's sesion Id
@@ -178,12 +187,15 @@ public class MainActivity extends AppCompatActivity {
             case R.id.change_view: //To change the view and the menu icon
                 if (VIEW_MODE_LISTVIEW == currentViewMode) {
                     currentViewMode = VIEW_MODE_GRIDVIEW;
+                    optionsMenu.getItem(SEARCH).setVisible(true);
                     item.setIcon(icon_list);
                 } else if (VIEW_MODE_IMAGEVIEW == currentViewMode) {
                     currentViewMode = VIEW_MODE_GRIDVIEW;
+                    optionsMenu.getItem(SEARCH).setVisible(true);
                     item.setIcon(icon_list);
                 } else {
                     currentViewMode = VIEW_MODE_LISTVIEW;
+                    optionsMenu.getItem(SEARCH).setVisible(false);
                     item.setIcon(icon_grid);
                 }
                 switchView();
@@ -264,6 +276,92 @@ public class MainActivity extends AppCompatActivity {
                 });
                 mDialog.show();
                 break;
+
+            case R.id.search: //Creates a dialog to enable the auto-refresh and to choose the interval value in minutes
+                AlertDialog.Builder mbuilder = new AlertDialog.Builder(MainActivity.this);
+                View mViews = getLayoutInflater().inflate(R.layout.search_dialog, null);
+                mbuilder.setView(mViews);
+                final AlertDialog mDialogs = mbuilder.create();
+
+                ImageButton search_btn = (ImageButton) mViews.findViewById(R.id.search_button);
+                ImageButton search_btn_loc = (ImageButton) mViews.findViewById(R.id.search_button_loc);
+                final EditText search_txt = (EditText) mViews.findViewById(R.id.editText_search);
+
+
+                search_btn_loc.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        TrackGPS gps = new TrackGPS(MainActivity.this);
+                        if (gps.canGetLocation()){
+                            try {
+                                Geocoder geo = new Geocoder(MainActivity.this, Locale.getDefault());
+                                List<Address> addresses = geo.getFromLocation(gps.getLatitude(), gps.getLongitude(), 1);
+                                //List<Address> addresses = geo.getFromLocation(55.86515, -4.25763, 1);
+                                if (addresses.isEmpty()) {
+                                    Toast.makeText(MainActivity.this, "Waiting for Location", Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    if (addresses.size() > 0) {
+                                        Toast.makeText(MainActivity.this, addresses.get(0).getAdminArea() + " (" + gps.getLatitude()+","+gps.getLongitude()+")", Toast.LENGTH_SHORT).show();
+
+                                        getSupportActionBar().setTitle(addresses.get(0).getAdminArea());
+
+                                        currentViewMode = VIEW_MODE_IMAGEVIEW;
+
+                                        gridState = listView.onSaveInstanceState();
+
+                                        optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
+
+                                        SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putInt("currentViewMode", currentViewMode);
+                                        editor.commit();
+
+                                        searchPhotoList(addresses.get(0).getAdminArea());
+
+                                    }
+                                }
+                            }
+                            catch(Exception e){
+                                Toast.makeText(MainActivity.this, "No Location Name Found", Toast.LENGTH_SHORT).show();
+                            }
+                            mDialogs.cancel();
+                        }
+                        else {
+                            gps.showAlert();
+                        }
+                    }
+                });
+
+                search_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String search_text = search_txt.getText().toString();
+                        if (search_text.length()<=0){
+                            Toast.makeText(MainActivity.this, R.string.enter_word, Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+
+                            getSupportActionBar().setTitle(search_text);
+
+                            currentViewMode = VIEW_MODE_IMAGEVIEW;
+
+                            gridState = listView.onSaveInstanceState();
+
+                            optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
+
+                            SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putInt("currentViewMode", currentViewMode);
+                            editor.commit();
+
+                            searchPhotoList(search_text);
+                            mDialogs.cancel();
+                        }
+                    }
+                });
+                mDialogs.show();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -326,6 +424,16 @@ public class MainActivity extends AppCompatActivity {
         Picasso.get().load(photoMap.get(actual_collection).get(position).getUrls().getRegular()).into(imageView);
         Title.setText(photoMap.get(actual_collection).get(position).getUser().getName());
         Autor.setText("");
+
+        if (photoMap.get(actual_collection).get(position).getLocation() != null) {
+
+            if (photoMap.get(actual_collection).get(position).getLocation().getCity() != null) {
+                Autor.setText(photoMap.get(actual_collection).get(position).getLocation().getCity() + ", " + photoMap.get(actual_collection).get(position).getLocation().getCountry());
+            } else if (photoMap.get(actual_collection).get(position).getLocation().getCountry() != null)
+            {
+                Autor.setText(photoMap.get(actual_collection).get(position).getLocation().getCountry());
+            }
+        }
 
         final Photo photo = photoMap.get(actual_collection).get(position);
 
@@ -456,6 +564,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //To search photos
+    private void searchPhotoList(String query) {
+
+        //TODO: MARIUS Show the photos depending on the user's preferences and always new ones
+
+        actual_collection=query;
+
+        actual_collection_position = -1;
+
+        if (photoMap.containsKey(actual_collection)) {
+
+            setAdapters();
+
+        } else {
+            unsplash.searchPhotos(query, page, perPage, new Unsplash.OnSearchCompleteListener(){
+
+                @Override
+                public void onComplete(SearchResults results) {
+                    List<Photo> photos = results.getResults();
+                    photoMap.put(actual_collection, photos);
+
+                    setAdapters();
+                }
+
+                @Override
+                public void onError(String error) {
+
+                }
+            });
+        }
+    }
+
     //____________________________________
 
     //What happens when a photo is liked
@@ -467,7 +607,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (photoMap.get(actual_collection).size() == 1) { //If the photo was the last one of the collection the view will return to the collection grid
             photoMap.remove(actual_collection);
-            collectionsList.remove(actual_collection_position);
+            if (actual_collection_position != -1){
+            collectionsList.remove(actual_collection_position);}
             currentViewMode = VIEW_MODE_GRIDVIEW;
             gridViewAdapter.notifyDataSetChanged();
             optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_list);
@@ -524,7 +665,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (photoMap.get(actual_collection).size() == 1) {//If the photo was the last one of the collection the view will return to the collection grid
             photoMap.remove(actual_collection);
-            collectionsList.remove(actual_collection_position);
+            if (actual_collection_position != -1) {
+                collectionsList.remove(actual_collection_position);
+            }
             currentViewMode = VIEW_MODE_GRIDVIEW;
             gridViewAdapter.notifyDataSetChanged();
             optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_list);
@@ -718,6 +861,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //_____________________________________
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+
+        if(keyCode==KeyEvent.KEYCODE_BACK)
+        {
+            if (VIEW_MODE_IMAGEVIEW == currentViewMode) {
+                currentViewMode = VIEW_MODE_GRIDVIEW;
+                optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_list);
+                switchView();
+                SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("currentViewMode", currentViewMode);
+                editor.commit();
+            } else {
+                finish();
+            }
+
+        }
+        return true;
+    }
 
     //On item long click listener
     AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener() {

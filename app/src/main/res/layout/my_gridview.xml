@@ -10,14 +10,14 @@
         android:id="@+id/mygridview"
         android:paddingTop="15dp"
         android:paddingBottom="15dp"
-        android:columnWidth="150dp"
+        android:columnWidth="165dp"
         android:gravity="center|bottom"
         android:horizontalSpacing="10dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:numColumns="2"
         android:stretchMode="spacingWidth"
-        android:verticalSpacing="20dp"
+        android:verticalSpacing="10dp"
         android:visibility="visible"
         />
 

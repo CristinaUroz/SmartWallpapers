@@ -16,4 +16,8 @@
                         \n\nClick to view an photo
                         \n\nClick on the top middle icon to change view to quotes/categories
                         \n\nClick on the top left icon to change wallpaper</string>
+    <string name="Search_photos">SEARCH PHOTOS</string>
+    <string name="Search">Search</string>
+    <string name="search_from_your_localization">Search photos from your current localization</string>
+    <string name="enter_word">Please enter a word to search</string>
 </resources>

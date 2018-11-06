@@ -33,7 +33,18 @@
         android:title="@string/settings"
         android:visible="true"
         app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" ></item>
+
+
+    <item
+        android:id="@+id/search"
+        android:checkable="false"
+        android:enabled="true"
+        android:title="@string/Search"
+        android:visible="true"
+        app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+        app:showAsAction="ifRoom" ></item>
+
 
 
 </menu>
