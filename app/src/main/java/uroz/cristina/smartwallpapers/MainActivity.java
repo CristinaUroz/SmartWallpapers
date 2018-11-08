@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
 
     //__________________________
 
+    //TODO: Change app icon
+    //TODO: Create a widget to refresh the wallpaper
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -183,6 +186,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        //TODO: Put an option to allow the user write quotes
+
         switch (item.getItemId()) {
             case R.id.change_view: //To change the view and the menu icon
                 if (VIEW_MODE_LISTVIEW == currentViewMode) {
@@ -206,6 +212,10 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.info: //Creates a dialog with the information about how to use the app
+
+                //TODO: Create an AlertDialog with a video player that shows the user how to use the app
+                //TODO: Put voice-over depending of the lenguage of the mobilephone
+
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
                 mBuilder.setMessage(R.string.app_info);
                 AlertDialog dialog = mBuilder.create();
@@ -508,9 +518,8 @@ public class MainActivity extends AppCompatActivity {
     //To get all the quotes
     private void getQuoteList() {
 
-        //TODO: CRISTINA Take API quotes to create the list
-
-        //TODO: KASIA Show the photos depending on the user's preferences and always new ones
+        //TODO: KASIA Create some quotes
+        //TODO: Make them different every time that the user opens the app
 
         quoteList = new ArrayList<>();
         for (int i = 0; i < 15; i++) {
@@ -521,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
     //To get all the collections
     private void getCollectionList() {
 
-        //TODO: MARIUS Show the collections depending on the user's preferences and always new ones
+        //TODO: MARIUS Show the collections depending on the user's preferences. If it is not possible, show new categories everytime that the user opens the app
 
         unsplash.getCollections(page, perPage, new Unsplash.OnCollectionsLoadedListener() {
             @Override
@@ -598,6 +607,9 @@ public class MainActivity extends AppCompatActivity {
 
     //____________________________________
 
+    //TODO: When the user likes o deletes an item create a new one to not let the list/grid be empty
+    //Be careful of losing the position where is the user on the list/grid
+
     //What happens when a photo is liked
     public boolean photoLiked(Photo photo) {
 
@@ -651,8 +663,6 @@ public class MainActivity extends AppCompatActivity {
     //What happens when a quote is liked
     public boolean quoteLiked(Quote quote) {
 
-        //TODO: KASIA What happens when the users likes this quote?
-
         likedQuotes.add(String.format("%s;%s", quote.getTitle(), quote.getAutor())); //Put the quote at likes list
         return false;
     }
@@ -689,8 +699,6 @@ public class MainActivity extends AppCompatActivity {
     //What happens when a quote is deleted
     public boolean quoteDeleted(Quote quote) {
 
-        //TODO: KASIA What happens when the users deletes this quote?
-
         return false;
     }
 
@@ -699,7 +707,7 @@ public class MainActivity extends AppCompatActivity {
     //To get a random image and quote to set as a wallpaper
     public void getRandom() {
 
-        //TODO: MARIUS & KASIA get photo and quote depending on user's preferences... (now only takes photos and quotes that have been marked as like)
+        //TODO: MARIUS get photo depending on user's preferences... (now only takes photos that have been marked as like)
 
         if (likedPohtos.size() != 0) {
             int pos = (int) Math.floor(Math.random() * (likedPohtos.size()));
@@ -1017,6 +1025,8 @@ public class MainActivity extends AppCompatActivity {
     };
 
 //_____________________________________
+
+    //TODO: Make this class running after close the app
 
     //Class to do the wallpaper auto-refreshing
     public class AutomaticRefreshing implements Runnable {
