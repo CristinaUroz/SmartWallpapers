@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -31,7 +32,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kc.unsplash.Unsplash;
-import com.kc.unsplash.api.Order;
 import com.kc.unsplash.models.Collection;
 import com.kc.unsplash.models.Photo;
 import com.kc.unsplash.models.SearchResults;
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewStub stubList;
     private ListView listView;
     private GridView gridView;
+    private FloatingActionButton search_fb;
     private ListViewAdapter listViewAdapter;
     private GridViewAdapter gridViewAdapter;
     private ImageViewAdapter imageViewAdapter;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
     // Menu variables
     private Menu optionsMenu;
     static final int CHANGE_VIEW_MODE = 1; //Change view menu item id
-    static final int SEARCH = 4; //Change view menu item id
 
     //Photos, collections and quotes variables
     private List<Quote> quoteList; //List of all the quotes that will be displayed
@@ -140,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
         //Find layout items
         listView = findViewById(R.id.mylistview);
         gridView = findViewById(R.id.mygridview);
+        search_fb = findViewById(R.id.search_floating_button);
 
         //Set listeners
         listView.setOnItemClickListener(onItemClick);
@@ -167,127 +168,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             enable_auto = false;
         }
-    }
 
-    @Override //Save the liked photos & quotes file
-    protected void onStop() {
-        super.onStop();
-        WriteLikedPhoto();
-        WriteLikedQuotes();
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        optionsMenu = menu;
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        //TODO: Put an option to allow the user write quotes
-
-        switch (item.getItemId()) {
-            case R.id.change_view: //To change the view and the menu icon
-                if (VIEW_MODE_LISTVIEW == currentViewMode) {
-                    currentViewMode = VIEW_MODE_GRIDVIEW;
-                    optionsMenu.getItem(SEARCH).setVisible(true);
-                    item.setIcon(icon_list);
-                } else if (VIEW_MODE_IMAGEVIEW == currentViewMode) {
-                    currentViewMode = VIEW_MODE_GRIDVIEW;
-                    optionsMenu.getItem(SEARCH).setVisible(true);
-                    item.setIcon(icon_list);
-                } else {
-                    currentViewMode = VIEW_MODE_LISTVIEW;
-                    optionsMenu.getItem(SEARCH).setVisible(false);
-                    item.setIcon(icon_grid);
-                }
-                switchView();
-                SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt("currentViewMode", currentViewMode);
-                editor.commit();
-                break;
-
-            case R.id.info: //Creates a dialog with the information about how to use the app
-
-                //TODO: Create an AlertDialog with a video player that shows the user how to use the app
-                //TODO: Put voice-over depending of the lenguage of the mobilephone
-
-                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-                mBuilder.setMessage(R.string.app_info);
-                AlertDialog dialog = mBuilder.create();
-                dialog.show();
-                break;
-
-            case R.id.changeWallpaper: //Change the wallpaper with an image and quote liked by the users
-                if (enable_auto) { //If the user has enabled the auto-refresh switch, the timer will start again
-                    stopThread();
-                    getRandom();
-                    startThread();
-                } else {
-                    getRandom();
-                }
-                break;
-
-            case R.id.settings: //Creates a dialog to enable the auto-refresh and to choose the interval value in minutes
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                View mView = getLayoutInflater().inflate(R.layout.settings_dialog, null);
-                builder.setView(mView);
-                final AlertDialog mDialog = builder.create();
-
-                final EditText photo_interval = (EditText) mView.findViewById(R.id.photo_interval);
-                final Switch enable_automatic = (Switch) mView.findViewById(R.id.enable_automatic);
-                Button apply = (Button) mView.findViewById(R.id.apply_button);
-                Button cancel = (Button) mView.findViewById(R.id.cancel_button);
-
-                String photo_i = readString(this, PHOTO_INTERVAL);
-                Boolean enabled = Boolean.valueOf(readString(this, REFRESHING));
-
-                photo_interval.setText(photo_i);
-                enable_automatic.setChecked(enabled);
-
-                apply.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        String p_i = photo_interval.getText().toString();
-                        String r = Boolean.toString(enable_automatic.isChecked());
-
-                        if (Integer.valueOf(p_i) < 5) {//Minimum minutes of auto-refreshing
-                            p_i = "5";
-                        } else if (Integer.valueOf(p_i) > 300) {//Maximum minutes of auto-refreshing
-                            p_i = "300";
-                        }
-
-                        if (enable_automatic.isChecked()) {//Start a new auto-refreshing thread
-                            enable_auto = true;
-                            stopThread();
-                            startThread();
-                        } else {//Stop the auto-refreshing
-                            enable_auto = false;
-                            stopThread();
-                        }
-
-                        //Save auto-refreshing switch and minutes variables
-                        writeString(MainActivity.this, PHOTO_INTERVAL, p_i);
-                        writeString(MainActivity.this, REFRESHING, r);
-
-                        mDialog.cancel();
-                    }
-                });
-
-                cancel.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        mDialog.cancel();
-                    }
-                });
-                mDialog.show();
-                break;
-
-            case R.id.search: //Creates a dialog to enable the auto-refresh and to choose the interval value in minutes
+        search_fb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 AlertDialog.Builder mbuilder = new AlertDialog.Builder(MainActivity.this);
                 View mViews = getLayoutInflater().inflate(R.layout.search_dialog, null);
                 mbuilder.setView(mViews);
@@ -371,6 +255,124 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 mDialogs.show();
+            }
+        });
+
+    }
+
+    @Override //Save the liked photos & quotes file
+    protected void onStop() {
+        super.onStop();
+        WriteLikedPhoto();
+        WriteLikedQuotes();
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        optionsMenu = menu;
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        //TODO: Put an option to allow the user write quotes
+
+        switch (item.getItemId()) {
+            case R.id.change_view: //To change the view and the menu icon
+                if (VIEW_MODE_LISTVIEW == currentViewMode) {
+                    currentViewMode = VIEW_MODE_GRIDVIEW;
+                    item.setIcon(icon_list);
+                } else if (VIEW_MODE_IMAGEVIEW == currentViewMode) {
+                    currentViewMode = VIEW_MODE_GRIDVIEW;
+                    item.setIcon(icon_list);
+                } else {
+                    currentViewMode = VIEW_MODE_LISTVIEW;
+                    item.setIcon(icon_grid);
+                }
+                switchView();
+                SharedPreferences sharedPreferences = getSharedPreferences("ViewMode", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt("currentViewMode", currentViewMode);
+                editor.commit();
+                break;
+
+            case R.id.info: //Creates a dialog with the information about how to use the app
+
+                //TODO: Create an AlertDialog with a video player that shows the user how to use the app
+                //TODO: Put voice-over depending of the lenguage of the mobilephone
+
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+                mBuilder.setMessage(R.string.app_info);
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();
+                break;
+
+            case R.id.changeWallpaper: //Change the wallpaper with an image and quote liked by the users
+                if (enable_auto) { //If the user has enabled the auto-refresh switch, the timer will start again
+                    stopThread();
+                    getRandom();
+                    startThread();
+                } else {
+                    getRandom();
+                }
+                break;
+
+            case R.id.settings: //Creates a dialog to enable the auto-refresh and to choose the interval value in minutes
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                View mView = getLayoutInflater().inflate(R.layout.settings_dialog, null);
+                builder.setView(mView);
+                final AlertDialog mDialog = builder.create();
+
+                final EditText photo_interval = (EditText) mView.findViewById(R.id.photo_interval);
+                final Switch enable_automatic = (Switch) mView.findViewById(R.id.enable_automatic);
+                Button apply = (Button) mView.findViewById(R.id.apply_button);
+                Button cancel = (Button) mView.findViewById(R.id.cancel_button);
+
+                String photo_i = readString(this, PHOTO_INTERVAL);
+                Boolean enabled = Boolean.valueOf(readString(this, REFRESHING));
+
+                photo_interval.setText(photo_i);
+                enable_automatic.setChecked(enabled);
+
+                apply.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        String p_i = photo_interval.getText().toString();
+                        String r = Boolean.toString(enable_automatic.isChecked());
+
+                        if (Integer.valueOf(p_i) < 5) {//Minimum minutes of auto-refreshing
+                            p_i = "5";
+                        } else if (Integer.valueOf(p_i) > 300) {//Maximum minutes of auto-refreshing
+                            p_i = "300";
+                        }
+
+                        if (enable_automatic.isChecked()) {//Start a new auto-refreshing thread
+                            enable_auto = true;
+                            stopThread();
+                            startThread();
+                        } else {//Stop the auto-refreshing
+                            enable_auto = false;
+                            stopThread();
+                        }
+
+                        //Save auto-refreshing switch and minutes variables
+                        writeString(MainActivity.this, PHOTO_INTERVAL, p_i);
+                        writeString(MainActivity.this, REFRESHING, r);
+
+                        mDialog.cancel();
+                    }
+                });
+
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        mDialog.cancel();
+                    }
+                });
+                mDialog.show();
                 break;
         }
         return super.onOptionsItemSelected(item);

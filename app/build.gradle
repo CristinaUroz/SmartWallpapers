@@ -35,4 +35,5 @@ dependencies {
     compile 'com.kc.androidunsplash:androidunsplash:0.1.2'
 
     compile 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.android.support:design:26.1.0'
 }
