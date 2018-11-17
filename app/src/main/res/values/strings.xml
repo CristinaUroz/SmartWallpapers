@@ -5,7 +5,7 @@
     <string name="automatic">Automatic wallpaper change</string>
     <string name="settings">Settings</string>
     <string name="photo_refresh_interval">SET REFRESH INTERVAL</string>
-    <string name="refresh_info">Enter your value in minutes. The minimum and the maxim values are 5 and 300 minutes.</string>
+    <string name="refresh_info">Enter your value in minutes. The minimum and the maxim values are 30 and 300 minutes.</string>
     <string name="apply">apply</string>
     <string name="enable_auto_refreshing">Enable auto-refreshing wallpaper</string>
     <string name="display_quote">Do you want to display this quote as wallpaper?</string>

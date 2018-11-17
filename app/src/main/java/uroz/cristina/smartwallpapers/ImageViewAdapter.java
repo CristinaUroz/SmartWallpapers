@@ -55,7 +55,7 @@ public class ImageViewAdapter extends ArrayAdapter<Photo> {
             @Override
             public void onClick(View view) {
                 if(context instanceof MainActivity){
-                    ((MainActivity)context).photoDeleted(photo);
+                    ((MainActivity)context).dislikedPhoto(photo);
                 }
                 remove(photo);
             }

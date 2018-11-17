@@ -13,14 +13,14 @@ import android.graphics.Color;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff;
 
-public class SetWallpaper implements Runnable {
+public class SetWallpaperQuoteTask implements Runnable {
 
     private Context context;
     private Bitmap bitmap;
     private String quote;
     private String quote_autor;
 
-    SetWallpaper(Context context, Bitmap bitmap, String quote, String quote_autor) {
+    public SetWallpaperQuoteTask(Context context, Bitmap bitmap, String quote, String quote_autor) {
         this.context = context;
         this.bitmap = bitmap;
         this.quote = quote;
@@ -56,7 +56,7 @@ public class SetWallpaper implements Runnable {
         try{
             manager.setBitmap(bitmap);
         } catch (IOException e) {
-            Log.e("SetWallpaper","run: IOException");
+            Log.e("SetWallpaperQuoteTask","run: IOException");
         }
 
     }

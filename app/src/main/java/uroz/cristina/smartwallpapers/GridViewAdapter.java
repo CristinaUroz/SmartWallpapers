@@ -9,10 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.kc.unsplash.models.Collection;
-
 import java.util.List;
+
 
 public class GridViewAdapter extends ArrayAdapter <Collection>{
 
@@ -50,6 +49,8 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
                     ((MainActivity)context).collectionLiked(collection);
                 }
                 remove(collection);
+
+                //TODO notify observers of action
             }
         });
 
@@ -61,6 +62,8 @@ public class GridViewAdapter extends ArrayAdapter <Collection>{
                     ((MainActivity)context).collectionDeleted(collection);
                 }
                 remove(collection);
+
+                //TODO notify observers of action
             }
         });
 

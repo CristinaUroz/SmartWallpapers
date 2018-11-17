@@ -8,6 +8,8 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+      <!-- changing the wallpaper automatically is one of the main features that differentiate ours from
+          others on the market, so there is no need for a switch to turn this featue on/off. ~Marius~
         <Switch
             android:id="@+id/enable_automatic"
             android:layout_width="match_parent"
@@ -19,6 +21,7 @@
             android:paddingLeft="16dp"
             android:paddingTop="32dp"
             android:paddingBottom="8dp"/>
+            -->
 
         <View
             android:id="@+id/dividerS"
