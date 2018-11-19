@@ -183,7 +183,9 @@ public class MainActivity extends AppCompatActivity {
           .writeToPreferenceFile(this, PreferencesManager.STRING, MainActivity.FIRST_LAUNCH, "no");
       PreferencesManager.writeToPreferenceFile(this, BOOLEAN, MainActivity.REFRESHING, true);
 
-      int intervalMillis = 30 * 60 * 1000; //30 mins
+    //  int intervalMillis = 30 * 1000; //30 seconds, debugging purposes
+
+      int intervalMillis = 30 * 60 * 1000;
       PreferencesManager
           .writeToPreferenceFile(this, PreferencesManager.INT, INTERVAL_MILLIS,
               intervalMillis);
@@ -364,24 +366,29 @@ public class MainActivity extends AppCompatActivity {
         apply.setOnClickListener(new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            int changeWallpaperTimer = Integer.valueOf(photo_interval.getText().toString());
+            float changeWallpaperTimerFloat  = 1f;
+            changeWallpaperTimerFloat = Float.valueOf(photo_interval.getText().toString());
+            int changeWallpaperTimer = (int) (changeWallpaperTimerFloat * 60);
+
             int oldWallpaperTimer = PreferencesManager
                 .readInt(MainActivity.this, PreferencesManager.INTERVAL_MILLIS);
 
             //transform into millis the data read from the view
-            changeWallpaperTimer *= 60 * 1000;
+            changeWallpaperTimer *= 1000;
 
             int THIRTY_MINUTES = 30 * 60 * 1000;
-            int THREE_HUNDRED_MINUTES = 300;
+            int THREE_HUNDRED_MINUTES = 300 * 60 * 1000;
 
-            //limit the interval changing between 20 minutes and 300 minutes
-            //NOTE: For debugging purposes you can comment the following if statement and write only once the INTERVAL_MILLIS to set wallpaper changing at a faster rate (e.g 30 seconds)
+            //FIXME: Alarm is not triggering, there might be a problem here
+
+            //limit the interval changing between 30 minutes and 300 minutes
             if (changeWallpaperTimer != oldWallpaperTimer) {
-              changeWallpaperTimer =
-                  (changeWallpaperTimer < THIRTY_MINUTES) ? THIRTY_MINUTES : changeWallpaperTimer;
-              changeWallpaperTimer =
-                  (changeWallpaperTimer > THREE_HUNDRED_MINUTES) ? THREE_HUNDRED_MINUTES
-                      : changeWallpaperTimer;
+              //NOTE: For debugging purposes you can comment the following constraint statements and write only once the INTERVAL_MILLIS to set wallpaper changing at a faster rate (e.g 30 seconds)
+//              changeWallpaperTimer =
+//                  (changeWallpaperTimer < THIRTY_MINUTES) ? THIRTY_MINUTES : changeWallpaperTimer;
+//              changeWallpaperTimer =
+//                  (changeWallpaperTimer > THREE_HUNDRED_MINUTES) ? THREE_HUNDRED_MINUTES
+//                      : changeWallpaperTimer;
 
               PreferencesManager.writeToPreferenceFile(MainActivity.this, PreferencesManager.INT,
                   PreferencesManager.INTERVAL_MILLIS, changeWallpaperTimer);
