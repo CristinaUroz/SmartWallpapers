@@ -395,8 +395,9 @@ public class MainActivity extends AppCompatActivity {
 
               if (wallpaperAlarm.alarmExists(MainActivity.this)) {
                 wallpaperAlarm.cancelAlarm(MainActivity.this);
-                wallpaperAlarm.setAlarm(MainActivity.this);
               }
+
+              wallpaperAlarm.setAlarm(MainActivity.this);
             }
 
             //Marius: idk if writing this string to the preference file is really necessary since we have the state of the UI element
