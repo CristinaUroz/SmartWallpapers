@@ -20,4 +20,17 @@
     <string name="Search">Search</string>
     <string name="search_from_your_localization">Search photos from your current localization</string>
     <string name="enter_word">Please enter a word to search</string>
+    <string name="quote_size_question">Choose size:</string>
+    <string name="qd_small">small</string>
+    <string name="qd_medium">medium</string>
+    <string name="qd_large">large</string>
+    <string name="quote_color_question">Choose color: </string>
+    <string name="qd_white">white</string>
+    <string name="qd_black">black</string>
+    <string name="qd_green">green</string>
+    <string name="quote_localization_question">Choose localization:</string>
+    <string name="qd_top">top</string>
+    <string name="qd_middle">middle</string>
+    <string name="qd_bottom">bottom</string>
+
 </resources>

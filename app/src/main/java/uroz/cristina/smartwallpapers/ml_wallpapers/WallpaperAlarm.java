@@ -108,8 +108,9 @@ public class WallpaperAlarm extends BroadcastReceiver {
     Picasso.get().load(imgUrl).into(new Target() {
       @Override
       public void onBitmapLoaded(Bitmap bitmap, LoadedFrom from) {
+        ArrayList<String> quoteDisplayDetails = new ArrayList<>();
         SetWallpaperQuoteTask p = new SetWallpaperQuoteTask(context, bitmap, "",
-            "");
+            "", quoteDisplayDetails);
         new Thread(p).start();
       }
 

@@ -2,21 +2,28 @@ package uroz.cristina.smartwallpapers;
 
 public class Quote {
 
-    private String title;
-    private String autor;
+    private String quotation;
+    private String author;
+    private String category;
 
-    public Quote ( String title, String autor) {
 
-        this.title = title;
-        this.autor = autor;
+    public Quote ( String quotation, String author, String category) {
+
+
+        this.quotation = quotation;
+        this.author = author;
+        this.category = category;
     }
 
-    public String getTitle() {
-        return title;
+
+    public String getQuotation() {
+        return quotation;
     }
 
-    public String getAutor() {
-        return autor;
+    public String getAuthor() {
+        return author;
     }
+
+    public String getCategory() {return category;}
 
 }

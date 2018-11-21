@@ -36,16 +36,16 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         final ImageView like= (ImageView) v.findViewById(R.id.likeViewL);
         ImageView delete= (ImageView) v.findViewById(R.id.deleteViewL);
         TextView txtTitle= (TextView) v.findViewById(R.id.txtTitleL);
-        TextView txtAutor = (TextView) v.findViewById(R.id.txtAutorL);
+        TextView txtAuthor = (TextView) v.findViewById(R.id.txtAuthorL);
 
-        txtTitle.setText(quote.getTitle());
-        txtAutor.setText(quote.getAutor());
+        txtTitle.setText(quote.getQuotation());
+        txtAuthor.setText(quote.getAuthor());
 
         like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(context instanceof MainActivity){
-                    ((MainActivity)context).quoteLiked(quote);
+                    ((MainActivity)context).quoteLiked(quote, false);
                 }
                 remove(quote);
             }
