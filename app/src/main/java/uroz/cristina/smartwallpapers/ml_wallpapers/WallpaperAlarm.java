@@ -12,6 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
@@ -55,19 +57,26 @@ public class WallpaperAlarm extends BroadcastReceiver {
 
     List<String> photosUrls = readPhotosFile(context);
 
-    if (photosUrls.size() != 0){
 
-      String imgUrl = photosUrls.get(0);
+    //FIXME: The wallpaper won't be changed if the alarm goes off and the user doesn't have internet on through wifi.
+    //As improvement we could cache 10 pictures on the phone to have them for these type of situations
+    if (wifiOn(context)) {
 
-      //remove the photo that is going to be displayed on the background
-      photosUrls.remove(0);
-      writePhotosFile(context, photosUrls);
+      //display photo from favorites or display one based on user's preferences
+      if (photosUrls.size() != 0){
 
-      changeWallpaper(context, imgUrl);
+        String imgUrl = photosUrls.get(0);
 
-      createAndShowNotification(context, imgUrl);
-    }else{
-      //TODO display a photo based on user's preferences
+        //remove the photo that is going to be displayed on the background
+        photosUrls.remove(0);
+        writePhotosFile(context, photosUrls);
+
+        changeWallpaper(context, imgUrl);
+
+        createAndShowNotification(context, imgUrl);
+      }else{
+        //TODO display a photo based on user's preferences
+      }
     }
 
     //schedule the alarm to go off again, since in setAlarm we use setExact(); The only way to have a reapeating exact time alarm in API 23 >
@@ -239,6 +248,17 @@ public class WallpaperAlarm extends BroadcastReceiver {
     return PendingIntent.getBroadcast(context, 0,
         alarmIntent,
         PendingIntent.FLAG_NO_CREATE) != null;
+  }
+
+  public boolean wifiOn(Context context){
+    ConnectivityManager cm =
+        (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+    return activeNetwork != null &&
+        activeNetwork.isConnected() &&
+        (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI);
   }
 
 }
