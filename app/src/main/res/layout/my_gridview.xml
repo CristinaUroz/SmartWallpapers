@@ -14,26 +14,27 @@
         android:layout_gravity="bottom"
         android:layout_marginLeft="300dp"
         android:layout_marginBottom="30dp"
+
         app:srcCompat="@drawable/ic_search_black_24dp" />
 
-    <GridView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/mygridview"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp"
-        android:columnWidth="165dp"
-        android:gravity="center|bottom"
-        android:horizontalSpacing="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:numColumns="2"
-        android:stretchMode="spacingWidth"
-        android:verticalSpacing="10dp"
-        android:visibility="visible"
-        >
+  <GridView
+    android:id="@+id/mygridview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:paddingTop="15dp"
+    android:paddingBottom="15dp"
+    android:columnWidth="165dp"
+    android:gravity="center|bottom"
+    android:horizontalSpacing="10dp"
+    android:numColumns="2"
+    android:stretchMode="spacingWidth"
+    android:verticalSpacing="10dp"
+    android:visibility="visible"
+    >
 
-    </GridView>
+  </GridView>
 
 
 </FrameLayout>

@@ -96,7 +96,13 @@ public class SetWallpaperQuoteTask implements Runnable {
         try{
             manager.setBitmap(bitmap);
         } catch (IOException e) {
-            Log.e("SetWallpaperQuoteTask","run: IOException");
+            //Note When logging information please use:
+            //  -> the name of the app as tag, MainActivity.SMART_WALLPAPERS_TAG
+            //  -> the method where the error/exception occurred
+            // -> the error message (e.g. e.getMessage() ) STor a meaningful text wrote by you
+            // ~Marius~
+            Log.e(MainActivity.SMART_WALLPAPERS_TAG,"Failed to change wallpaper, SetWallpaperQuoteTask run(): " + e.getMessage());
+
         }
 
     }

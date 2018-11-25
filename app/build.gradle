@@ -4,7 +4,8 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "uroz.cristina.smartwallpapers"
-        minSdkVersion 19
+        vectorDrawables.useSupportLibrary = true
+        minSdkVersion 23
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -38,5 +39,10 @@ dependencies {
 
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.android.support:design:27.1.0'
+
+    implementation 'com.google.api-client:google-api-client-android:1.20.0' exclude module: 'httpclient'
+    implementation 'com.google.http-client:google-http-client-gson:1.20.0' exclude module: 'httpclient'
+    implementation 'com.google.apis:google-api-services-vision:v1-rev2-1.21.0' exclude module: 'httpclient'
+
 
 }
