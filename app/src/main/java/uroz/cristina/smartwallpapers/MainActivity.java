@@ -1157,9 +1157,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
 
     } else {
-      Toast.makeText(context,
-          "Your preferences haven't been tuned! \n Like some photos and try again later!",
-          Toast.LENGTH_LONG).show();
+      //the user has no preferences
     }
 
     //setWallpaper();
