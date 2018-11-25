@@ -9,7 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/grey"
+        android:background="#d1d1d1"
         android:orientation="vertical"
         android:weightSum="4">
 
@@ -41,18 +41,32 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="384dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:gravity="bottom"
         android:orientation="horizontal"
-        android:gravity="bottom">
+        tools:layout_editor_absoluteX="0dp"
+        tools:ignore="MissingConstraints">
+
+
+        <Button
+            android:id="@+id/withdraw_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="6dp"
+            android:background="@color/red"
+            android:text="cancel" />
+
 
         <Button
             android:id="@+id/save_qd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="@color/dark_grey"
+            android:layout_marginStart="45dp"
+            android:background="@color/green"
             android:text="save" />
 
         <Button
@@ -60,9 +74,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:background="@color/dark_grey"
-            android:layout_marginStart="40dp"
-            android:text="save and like" />
+            android:layout_marginStart="45dp"
+            android:background="#007299"
+            android:text="like" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

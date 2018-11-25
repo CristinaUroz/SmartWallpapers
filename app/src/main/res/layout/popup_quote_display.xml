@@ -4,148 +4,191 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey"
-    tools:layout_editor_absoluteY="81dp">
+    tools:layout_editor_absoluteY="81dp"
+    >
 
-    <TableLayout
-        android:id="@+id/tableLayout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <RelativeLayout
+        android:id="@+id/relativeLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#d1d1d1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        >
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+        <TableLayout
+            android:id="@+id/tableLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:background="@color/grey"
+            android:gravity="center"
+            android:padding="25dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/qd_size_question"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/quote_size_question" />
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-            <RadioGroup
-                android:id="@+id/quote_size"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                <TextView
+                    android:id="@+id/qd_size_question"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/quote_size_question"
+                    android:textSize="18dp" />
+
+                <RadioGroup
+                    android:id="@+id/quote_size"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp">
+
+                    <RadioButton
+                        android:id="@+id/qd_rb_small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="@string/qd_small"
+                        android:textSize="15dp" />
+
+                    <RadioButton
+                        android:id="@+id/qd_rb_medium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/qd_medium"
+                        android:textSize="15dp" />
+
+                    <RadioButton
+                        android:id="@+id/qd_rb_large"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/qd_large"
+                        android:textSize="15dp" />
+                </RadioGroup>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/qd_color_question"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/quote_color_question"
+                    android:textSize="18dp" />
+
+                <RadioGroup
+                    android:id="@+id/quote_color"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp">
+
+                    <RadioButton
+                        android:id="@+id/qd_rb_white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="@string/qd_white"
+                        android:textSize="15dp"
+                        tools:layout_editor_absoluteX="0dp"
+                        tools:layout_editor_absoluteY="511dp" />
+
+                    <RadioButton
+                        android:id="@+id/qd_rb_black"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/qd_black"
+                        android:textSize="15dp" />
+
+                    <RadioButton
+                        android:id="@+id/qd_rb_green"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/qd_green"
+                        android:textSize="15dp" />
+                </RadioGroup>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 >
 
-                <RadioButton
-                    android:id="@+id/qd_rb_small"
+                <TextView
+                    android:id="@+id/qd_localization_question"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_small"
-                    android:checked="true"/>
+                    android:text="@string/quote_localization_question"
+                    android:textSize="18dp" />
 
-                <RadioButton
-                    android:id="@+id/qd_rb_medium"
+                <RadioGroup
+                    android:id="@+id/quote_loc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_medium" />
+                    android:padding="8dp">
 
-                <RadioButton
-                    android:id="@+id/qd_rb_large"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_large" />
-            </RadioGroup>
-        </TableRow>
+                    <RadioButton
+                        android:id="@+id/qd_rb_top"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/qd_top"
+                        android:textSize="15dp" />
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+                    <RadioButton
+                        android:id="@+id/qd_rb_middle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="@string/qd_middle"
+                        android:textSize="15dp" />
 
-            <TextView
-                android:id="@+id/qd_color_question"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/quote_color_question" />
+                    <RadioButton
+                        android:id="@+id/qd_rb_bottom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/qd_bottom"
+                        android:textSize="15dp" />
+                </RadioGroup>
+            </TableRow>
 
-            <RadioGroup
-                android:id="@+id/quote_color"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
+        </TableLayout>
 
-                <RadioButton
-                    android:id="@+id/qd_rb_white"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/qd_white"
-                    android:checked="true"
-                    tools:layout_editor_absoluteX="0dp"
-                    tools:layout_editor_absoluteY="511dp" />
+        <Button
+            android:id="@+id/withdraw_qd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:paddingBottom="10dp"
+            android:layout_below="@id/tableLayout"
+            android:layout_marginTop="60dp"
+            android:layout_marginStart="38dp"
+            android:background="@color/red"
+            android:text="cancel" />
 
-                <RadioButton
-                    android:id="@+id/qd_rb_black"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_black" />
-
-                <RadioButton
-                    android:id="@+id/qd_rb_green"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_green" />
-            </RadioGroup>
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <TextView
-                android:id="@+id/qd_localization_question"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/quote_localization_question" />
-
-            <RadioGroup
-                android:id="@+id/quote_loc"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
-
-                <RadioButton
-                    android:id="@+id/qd_rb_top"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/qd_top" />
-
-                <RadioButton
-                    android:id="@+id/qd_rb_middle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_middle"
-                    android:checked="true"/>
-
-                <RadioButton
-                    android:id="@+id/qd_rb_bottom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/qd_bottom" />
-            </RadioGroup>
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <Button
-                android:id="@+id/save_qd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="save"
-                android:background="@color/dark_grey"/>
-        </TableRow>
-
-    </TableLayout>
+        <Button
+            android:id="@+id/save_qd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tableLayout"
+            android:layout_marginTop="60dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="38dp"
+            android:background="@color/green"
+            android:text="save" />
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>
