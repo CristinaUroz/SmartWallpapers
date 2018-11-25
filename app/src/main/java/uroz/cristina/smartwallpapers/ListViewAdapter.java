@@ -64,4 +64,5 @@ public class ListViewAdapter extends ArrayAdapter<Quote> {
         return v;
     }
 
+
 }

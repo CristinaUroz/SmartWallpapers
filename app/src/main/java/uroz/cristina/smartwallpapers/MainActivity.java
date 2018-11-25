@@ -264,6 +264,9 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
       checkWritePermission();
       checkSetWallpaperPermission();
+
+//
+
     }
 
     search_fb.setOnClickListener(new View.OnClickListener() {
@@ -369,7 +372,8 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
             addNewQuote.findViewById(R.id.save_qd).setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     Quote new_quote = getNewQuoteInfo();
-                    quoteList.add(0, new_quote);
+                    listViewAdapter.insert(new_quote, 0);
+                    listViewAdapter.notifyDataSetChanged();
                     pw.dismiss();
                 }
             });
@@ -1289,7 +1293,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
         SetWallpaperQuoteTask p = new SetWallpaperQuoteTask(MainActivity.this, bitmap, quote,
             quote_author, quoteDisplayInfo);
-
+        Log.i("powinno pozniej", String.valueOf(quoteDisplayInfo.size()));
         new Thread(p).start();
 
       }
@@ -1440,9 +1444,8 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
                 quoteList.get(position).getQuotation());
             writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE_AUTHOR,
                 quoteList.get(position).getAuthor());
+              collectQuoteDisplayInfo();
 
-            collectQuoteDisplayInfo();
-            setWallpaper();
 
 
 
@@ -1534,47 +1537,48 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     private void collectQuoteDisplayInfo() {
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         quoteDisplayLayout = inflater.inflate(R.layout.popup_quote_display, null);
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        final PopupWindow pw = new PopupWindow(quoteDisplayLayout,(int) (size.x*0.95), (int)(size.y*0.9), true);
 
-        quoteDisplayLayout.findViewById(R.id.save_qd).setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                RadioGroup size, color, localization;
-                RadioButton rb_size, rb_color, rb_loc;
-                size = quoteDisplayLayout.findViewById(R.id.quote_size);
-                color = quoteDisplayLayout.findViewById(R.id.quote_color);
-                localization = quoteDisplayLayout.findViewById(R.id.quote_loc);
-                int size_answer = size.getCheckedRadioButtonId();
-                int color_answer = color.getCheckedRadioButtonId();
-                int loc_answer = localization.getCheckedRadioButtonId();
+        AlertDialog.Builder quotDispDialog = new AlertDialog.Builder(MainActivity.this);
+        quotDispDialog.setView(quoteDisplayLayout);
+        quotDispDialog.setCancelable(false)
+                .setPositiveButton("SAVE",
+                        new DialogInterface.OnClickListener(){
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                RadioGroup size, color, localization;
+                                RadioButton rb_size, rb_color, rb_loc;
+                                size = quoteDisplayLayout.findViewById(R.id.quote_size);
+                                color = quoteDisplayLayout.findViewById(R.id.quote_color);
+                                localization = quoteDisplayLayout.findViewById(R.id.quote_loc);
+                                int size_answer = size.getCheckedRadioButtonId();
+                                int color_answer = color.getCheckedRadioButtonId();
+                                int loc_answer = localization.getCheckedRadioButtonId();
 
-            rb_size = quoteDisplayLayout.findViewById(size_answer);
-            rb_color = quoteDisplayLayout.findViewById(color_answer);
-            rb_loc = quoteDisplayLayout.findViewById(loc_answer);
-            if (quoteDisplayInfo.isEmpty()) {
-              quoteDisplayInfo.add((String) rb_size.getText());
-              quoteDisplayInfo.add((String) rb_color.getText());
-              quoteDisplayInfo.add((String) rb_loc.getText());
-            } else {
-              quoteDisplayInfo.set(0, ((String) rb_size.getText()));
-              quoteDisplayInfo.set(1, ((String) rb_color.getText()));
-              quoteDisplayInfo.set(2, (String) rb_loc.getText());
-            }
-            pw.dismiss();
-          }
-        });
+                                rb_size = quoteDisplayLayout.findViewById(size_answer);
+                                rb_color = quoteDisplayLayout.findViewById(color_answer);
+                                rb_loc = quoteDisplayLayout.findViewById(loc_answer);
+                                if (quoteDisplayInfo.isEmpty()) {
+                                    quoteDisplayInfo.add((String) rb_size.getText());
+                                    quoteDisplayInfo.add((String) rb_color.getText());
+                                    quoteDisplayInfo.add((String) rb_loc.getText());
+                                } else {
+                                    quoteDisplayInfo.set(0, ((String) rb_size.getText()));
+                                    quoteDisplayInfo.set(1, ((String) rb_color.getText()));
+                                    quoteDisplayInfo.set(2, (String) rb_loc.getText());
 
-      quoteDisplayLayout.findViewById(R.id.withdraw_qd).setOnClickListener(new View.OnClickListener() {
-        public void onClick(View v) {
-            pw.dismiss();
-          }
-      });
+                                }
+                                setWallpaper();
+                            }
 
-        pw.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-        pw.showAtLocation(quoteDisplayLayout, Gravity.CENTER, 0, 0);
-
+                        })
+                .setNegativeButton("CANCEL",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+        AlertDialog alertDialog = quotDispDialog.create();
+        alertDialog.show();
 
   }
 

@@ -11,7 +11,6 @@
         android:id="@+id/relativeLayout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#d1d1d1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -24,7 +23,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:background="@color/grey"
             android:gravity="center"
             android:padding="25dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -34,7 +32,8 @@
 
             <TableRow
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                >
 
                 <TextView
                     android:id="@+id/qd_size_question"
@@ -167,28 +166,6 @@
 
         </TableLayout>
 
-        <Button
-            android:id="@+id/withdraw_qd"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:paddingBottom="10dp"
-            android:layout_below="@id/tableLayout"
-            android:layout_marginTop="60dp"
-            android:layout_marginStart="38dp"
-            android:background="@color/red"
-            android:text="cancel" />
-
-        <Button
-            android:id="@+id/save_qd"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tableLayout"
-            android:layout_marginTop="60dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="38dp"
-            android:background="@color/green"
-            android:text="save" />
     </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

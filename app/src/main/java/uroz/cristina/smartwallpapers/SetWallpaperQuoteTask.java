@@ -29,6 +29,7 @@ public class SetWallpaperQuoteTask implements Runnable {
         this.quote = quote;
         this.quote_author = quote_author;
         this.quote_display_info = quote_display_info;
+        Log.i("konstruktor set wallpap", String.valueOf(this.quote_display_info));
     }
 
     public void run() {
