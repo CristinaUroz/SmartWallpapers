@@ -264,9 +264,6 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
       checkWritePermission();
       checkSetWallpaperPermission();
-
-//
-
     }
 
     search_fb.setOnClickListener(new View.OnClickListener() {
@@ -1291,7 +1288,6 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
         SetWallpaperQuoteTask p = new SetWallpaperQuoteTask(MainActivity.this, bitmap, quote,
             quote_author, quoteDisplayInfo);
-        Log.i("powinno pozniej", String.valueOf(quoteDisplayInfo.size()));
         new Thread(p).start();
 
       }
