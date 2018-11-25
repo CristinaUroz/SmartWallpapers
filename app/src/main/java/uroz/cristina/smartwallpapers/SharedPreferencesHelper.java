@@ -4,10 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.util.Set;
 
-/**
- * Created by Marius: marius.lucian.olariu@gmail.com
- */
-public class PreferencesManager {
+public class SharedPreferencesHelper {
 
   //constants used for writing/reading to preferences
   public static final int STRING = 0;
@@ -18,6 +15,7 @@ public class PreferencesManager {
 
   private static final String PREFERENCE_FILE_NAME = "WALLPAPER";
   public static final String INTERVAL_MILLIS = "INTERVAL_MILLIS";
+  public static final String DOWNLOAD_INTERVAL_MILLIS = "DOWNLOAD_INTERVAL_MILLIS";
 
 
   /**

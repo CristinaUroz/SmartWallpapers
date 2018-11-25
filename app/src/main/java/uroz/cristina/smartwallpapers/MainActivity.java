@@ -1,27 +1,30 @@
 package uroz.cristina.smartwallpapers;
 
 import static java.lang.Thread.sleep;
-import static uroz.cristina.smartwallpapers.PreferencesManager.BOOLEAN;
-import static uroz.cristina.smartwallpapers.PreferencesManager.INTERVAL_MILLIS;
-import static uroz.cristina.smartwallpapers.PreferencesManager.readString;
-import static uroz.cristina.smartwallpapers.PreferencesManager.writeToPreferenceFile;
+import static uroz.cristina.smartwallpapers.SharedPreferencesHelper.*;
+import static uroz.cristina.smartwallpapers.SharedPreferencesHelper.INTERVAL_MILLIS;
+import static uroz.cristina.smartwallpapers.SharedPreferencesHelper.readString;
+import static uroz.cristina.smartwallpapers.SharedPreferencesHelper.writeToPreferenceFile;
 
+import android.Manifest.permission;
 import android.app.AlertDialog;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
 import android.view.Display;
@@ -58,6 +61,7 @@ import com.kc.unsplash.models.Photo;
 import com.kc.unsplash.models.SearchResults;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Picasso.LoadedFrom;
 import com.squareup.picasso.Target;
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,19 +72,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import uroz.cristina.smartwallpapers.ml_wallpapers.DownloadPhotoAlarm;
+import uroz.cristina.smartwallpapers.ml_wallpapers.FeatureExtractionHelper;
+import uroz.cristina.smartwallpapers.ml_wallpapers.PhotoSearchListener;
+import uroz.cristina.smartwallpapers.ml_wallpapers.UnsplashSearchListener;
 import uroz.cristina.smartwallpapers.ml_wallpapers.WallpaperAlarm;
 import android.support.v7.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PhotoSearchListener {
+
+  private static final int REQUEST_WRITE_PERM_CODE = 100;
+  private static final int REQUEST_SET_WALLPAPER = 101;
 
   //TODO: CRISTINA Set screen orientation changeable
 
@@ -141,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
 
   //Unplash variables
-  private final String CLIENT_ID = "4254aee191dd7d4dec3ff36c75a61ffb50cdcd320d1c14942b1dec21f67159b9"; //Cristina's sesion Id
+  private final static String CLIENT_ID = "4254aee191dd7d4dec3ff36c75a61ffb50cdcd320d1c14942b1dec21f67159b9"; //Cristina's sesion Id
   private Unsplash unsplash = new Unsplash(CLIENT_ID);
 
   //Icons to change the view
@@ -152,13 +163,17 @@ public class MainActivity extends AppCompatActivity {
   //Variables to save strings in the cache memory
   static final String ACTUAL_IMAGE = "ACTUAL_IMAGE"; //To save the last wallpaper image set from this app
   static final String ACTUAL_QUOTE = "ACTUAL_QUOTE"; //To save the last quote image set from this app
-  public static final String NEXT_IMAGE_TAG = "NEXT_IMAGE";
+  public static final String NEXT_IMAGE_LOCATION = "NEXT_IMAGE";
   static final String ACTUAL_QUOTE_AUTHOR = "ACTUAL_QUOTE_AUTHOR"; //To save the last author of the quote image set from this app
   static final String PHOTO_INTERVAL = "PHOTO_INTERVAL"; //To save the refresh interval minutes
-  static final String REFRESHING = "REFRESHING"; //To save if the user wants the wallpaper auto-refresh
   static final String FIRST_LAUNCH = "FIRST_LAUNCH"; // On the first time when the app is launched do some on time configurations
+  private static final String NEXT_LABEL_INDEX = "NEXT_LABEL_INDEX"; //key to get the value of the next top label, initially 0
   public static final String SMART_WALLPAPERS_TAG = "SmartWallpapers";
 
+  /**
+   * Will be used to access the photo from app storage that is next to be analyzed for labels
+   */
+  public static final String NEXT_PHOTO_NAME = "SW_Next_Photo.png";
 
   //Variables of the thread to do the wallpaper auto-refresh
   private List<Boolean> stopThreadList = new ArrayList<>();
@@ -176,6 +191,10 @@ public class MainActivity extends AppCompatActivity {
 
   //Business Logic
   private WallpaperAlarm wallpaperAlarm;
+  private DownloadPhotoAlarm downloadPhotoAlarm;
+
+  //The download photo alarm should fire 1 minute before the change wallpaper alarm
+  private int differenceBetweenAlarms = 1 * 30 * 1000;
 
   //__________________________
 
@@ -212,34 +231,39 @@ public class MainActivity extends AppCompatActivity {
     gridView.setOnItemLongClickListener(onLongClick);
 
     //Initialize database
-      mDatabaseLQHelper = new DatabaseLikedQuotesHelper(MainActivity.this);
+    mDatabaseLQHelper = new DatabaseLikedQuotesHelper(MainActivity.this);
 
     //Get all the quotes and collections
     getQuoteList();
     getCollectionList();
 
-    //Read the previous liked photos and quotes from the user
     // Note: There is no need to read them in memory because the service will get them from the output file. There is a need for only for
 //      writing to those output files (where we have liked wallpapers/quotes);
-    //readLikedPhotos();
-    //readLikedQuotes();
     wallpaperAlarm = new WallpaperAlarm();
+    downloadPhotoAlarm = new DownloadPhotoAlarm();
 
     //do the one time configurations needed after the app was installed
-    if (readString(MainActivity.this, FIRST_LAUNCH) == null) {
-      PreferencesManager
-          .writeToPreferenceFile(this, PreferencesManager.STRING, MainActivity.FIRST_LAUNCH, "no");
-      PreferencesManager.writeToPreferenceFile(this, BOOLEAN, MainActivity.REFRESHING, true);
+    String firstLunch = readString(MainActivity.this, FIRST_LAUNCH);
+    if (firstLunch == null) {
+      writeToPreferenceFile(this, STRING, MainActivity.FIRST_LAUNCH, "no");
+      writeToPreferenceFile(this, INT, MainActivity.NEXT_LABEL_INDEX, 0);
 
-    //  int intervalMillis = 30 * 1000; //30 seconds, debugging purposes
+      int intervalMillis = 60 * 1000; //60 seconds, debugging purposes
 
-      int intervalMillis = 30 * 60 * 1000;
-      PreferencesManager
-          .writeToPreferenceFile(this, PreferencesManager.INT, INTERVAL_MILLIS,
-              intervalMillis);
+      //int intervalMillis = 30 * 60 * 1000;
+      writeToPreferenceFile(this, INT, INTERVAL_MILLIS,
+          intervalMillis);
+
+      int downloadTimeMillis = intervalMillis - differenceBetweenAlarms;
+      writeToPreferenceFile(this, INT,
+          DOWNLOAD_INTERVAL_MILLIS, downloadTimeMillis);
 
       //recurrent alarm
-      wallpaperAlarm.setAlarm(this);
+      wallpaperAlarm.setWallpaperChangingAlarm(this);
+      wallpaperAlarm.setDownloadAlarm(this);
+
+      checkWritePermission();
+      checkSetWallpaperPermission();
     }
 
     search_fb.setOnClickListener(new View.OnClickListener() {
@@ -337,10 +361,9 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             addNewQuote = inflater.inflate(R.layout.add_quote, null);
-            float density = MainActivity.this.getResources().getDisplayMetrics().density;
-          Display display = getWindowManager().getDefaultDisplay();
-          Point size = new Point();
-          display.getSize(size);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
             final PopupWindow pw = new PopupWindow(addNewQuote, (int) (size.x*0.95), (int)(size.y*0.8), true);
 
             addNewQuote.findViewById(R.id.save_qd).setOnClickListener(new View.OnClickListener() {
@@ -372,19 +395,86 @@ public class MainActivity extends AppCompatActivity {
 
   }
 
+  private void checkSetWallpaperPermission() {
+    boolean needPermision = checkSelfPermission(permission.SET_WALLPAPER) != PackageManager.PERMISSION_GRANTED;
+    if (needPermision) {
+      requestPermissions(new String[]{permission.SET_WALLPAPER}, REQUEST_SET_WALLPAPER);
+    }
+  }
+
+  private void checkWritePermission() {
+    if (checkSelfPermission(permission.WRITE_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED) {
+
+      // Should we show an explanation?
+      if (shouldShowRequestPermissionRationale(
+          permission.WRITE_EXTERNAL_STORAGE)) {
+        // Explain to the user why we need to read the contacts
+        Toast
+            .makeText(this, "Permision needed to store photo, analyze it and tune your preferences",
+                Toast.LENGTH_SHORT).show();
+      }
+
+      requestPermissions(new String[]{permission.WRITE_EXTERNAL_STORAGE},
+          REQUEST_WRITE_PERM_CODE);
+
+      // MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE is an
+      // app-defined int constant that should be quite unique
+
+      return;
+    }
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+      @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+    switch (requestCode) {
+      case REQUEST_WRITE_PERM_CODE:
+        if (grantResults.length > 0
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          // permission was granted, yay!
+        } else {
+          // permission denied, ask again
+          checkWritePermission();
+        }
+        break;
+
+      case REQUEST_SET_WALLPAPER:
+        if (grantResults.length > 0
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          // permission was granted, yay!
+        } else {
+          // permission denied, ask again
+          checkSetWallpaperPermission();
+        }
+        break;
+    }
+  }
+
+  /**
+   * THIS METHOD IS ONLY FOR DEVELOPERS; used to see the content of a specific preference file since we use a lot of them
+   * the dev inputs the name of the file and then the content will be displayed in an Alert Dialog
+   */
+  private void seeContentOfPreferenecFile(String preferenceFile) {
+    //TODO implement it
+
+  }
+
   private Quote getNewQuoteInfo() {
-      SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
-      SharedPreferences.Editor edit = quotesCat.edit();
+    SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
+    SharedPreferences.Editor edit = quotesCat.edit();
 
-      newQuoteContent = addNewQuote.findViewById(R.id.quote_content);
-      newQuoteAuthor = addNewQuote.findViewById(R.id.quote_author);
-      newQuoteCat = addNewQuote.findViewById(R.id.quote_cat);
-      String q_cont = newQuoteContent.getText().toString();
-      String q_auth = newQuoteAuthor.getText().toString();
-      String q_cat = newQuoteCat.getText().toString();
+    newQuoteContent = addNewQuote.findViewById(R.id.quote_content);
+    newQuoteAuthor = addNewQuote.findViewById(R.id.quote_author);
+    newQuoteCat = addNewQuote.findViewById(R.id.quote_cat);
+    String q_cont = newQuoteContent.getText().toString();
+    String q_auth = newQuoteAuthor.getText().toString();
+    String q_cat = newQuoteCat.getText().toString();
 
-    if(!quotesCat.contains(q_cat)){
-        edit.putInt(q_cat, 0);
+    if (!quotesCat.contains(q_cat)) {
+      edit.putInt(q_cat, 0);
     }
 
     edit.commit();
@@ -449,7 +539,7 @@ public class MainActivity extends AppCompatActivity {
         break;
 
       case R.id.changeWallpaper: //Change the wallpaper with an image and quote liked by the users
-        getA_Suggested_Image();
+        changeAutomaticallyWallpaperQuote(MainActivity.this, this);
 
         break;
 
@@ -471,12 +561,12 @@ public class MainActivity extends AppCompatActivity {
         apply.setOnClickListener(new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            float changeWallpaperTimerFloat  = 1f;
+            float changeWallpaperTimerFloat = 1f;
             changeWallpaperTimerFloat = Float.valueOf(photo_interval.getText().toString());
             int changeWallpaperTimer = (int) (changeWallpaperTimerFloat * 60);
 
-            int oldWallpaperTimer = PreferencesManager
-                .readInt(MainActivity.this, PreferencesManager.INTERVAL_MILLIS);
+            int oldWallpaperTimer =
+                readInt(MainActivity.this, INTERVAL_MILLIS);
 
             //transform into millis the data read from the view
             changeWallpaperTimer *= 1000;
@@ -495,18 +585,34 @@ public class MainActivity extends AppCompatActivity {
 //                  (changeWallpaperTimer > THREE_HUNDRED_MINUTES) ? THREE_HUNDRED_MINUTES
 //                      : changeWallpaperTimer;
 
-              PreferencesManager.writeToPreferenceFile(MainActivity.this, PreferencesManager.INT,
-                  PreferencesManager.INTERVAL_MILLIS, changeWallpaperTimer);
+              writeToPreferenceFile(MainActivity.this, INT,
+                  INTERVAL_MILLIS, changeWallpaperTimer);
 
               if (wallpaperAlarm.alarmExists(MainActivity.this)) {
                 wallpaperAlarm.cancelAlarm(MainActivity.this);
               }
 
-              wallpaperAlarm.setAlarm(MainActivity.this);
+              //change the download time as well
+              int downloadingTimeInterval = changeWallpaperTimer - differenceBetweenAlarms;
+
+              if (downloadingTimeInterval > 0) {
+                writeToPreferenceFile(MainActivity.this, INT, DOWNLOAD_INTERVAL_MILLIS,
+                    downloadingTimeInterval);
+              } else {
+                //write 0 so that no image processing is done; shouldn't end in this situation (enfoced by the time requirements)
+                writeToPreferenceFile(MainActivity.this, INT, DOWNLOAD_INTERVAL_MILLIS, 0);
+
+              }
+
+              if (downloadPhotoAlarm.alarmExists(MainActivity.this)) {
+                downloadPhotoAlarm.cancelAlarm(MainActivity.this);
+              }
+
+              wallpaperAlarm.setWallpaperChangingAlarm(MainActivity.this);
             }
 
             //Marius: idk if writing this string to the preference file is really necessary since we have the state of the UI element
-            //    PreferencesManager.writeToPreferenceFile(MainActivity.this, PreferencesManager.BOOLEAN, MainActivity.REFRESHING, new Boolean(changeWallpaperAutomatically));
+            //    SharedPreferencesHelper.writeToPreferenceFile(MainActivity.this, SharedPreferencesHelper.BOOLEAN, MainActivity.REFRESHING, new Boolean(changeWallpaperAutomatically));
 
             mDialog.cancel();
           }
@@ -519,6 +625,10 @@ public class MainActivity extends AppCompatActivity {
           }
         });
         mDialog.show();
+        break;
+
+      case R.id.showPrefFileID:
+        FeatureExtractionHelper.showWallpaperPreferenceFileContent(this);
         break;
     }
     return super.onOptionsItemSelected(item);
@@ -678,70 +788,68 @@ public class MainActivity extends AppCompatActivity {
 
   }
 
-//  get 100 quotes from API
-    private void getQuotes(final Boolean first) {
-        RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-        String url = "https://talaikis.com/api/quotes/";
-        JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url, null,
-                new Response.Listener<JSONArray>()
-                {
-                    SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor edit = quotesCat.edit();
+  //  get 100 quotes from API
+  private void getQuotes(final Boolean first) {
+    RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+    String url = "https://talaikis.com/api/quotes/";
+    JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url, null,
+        new Response.Listener<JSONArray>() {
+          SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
+          SharedPreferences.Editor edit = quotesCat.edit();
 
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        for( int i=0; i < response.length(); ++i){
-                            try {
-                                String quote = (String) response.getJSONObject(i).get("quote");
-                                String author = (String) response.getJSONObject(i).get("author");
-                                String category = (String) response.getJSONObject(i).get("cat");
-                                if (quote.length() < 100) {
-                                    Quote tmp_quote = new Quote(quote, author, category);
-                                    if (first) {
-                                        quoteList.add(tmp_quote);
-                                    }
-                                    else{
-                                        tmpQuoteList.add(tmp_quote);
-                                    }
-                                    if(!quotesCat.contains(category)){
-                                        edit.putInt(category, 0);
-                                    }
-                                }
-
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        edit.commit();
-                    }
-                },
-                new Response.ErrorListener()
-                {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("Error.Response", error.toString());
-                    }
+          @Override
+          public void onResponse(JSONArray response) {
+            for (int i = 0; i < response.length(); ++i) {
+              try {
+                String quote = (String) response.getJSONObject(i).get("quote");
+                String author = (String) response.getJSONObject(i).get("author");
+                String category = (String) response.getJSONObject(i).get("cat");
+                if (quote.length() < 100) {
+                  Quote tmp_quote = new Quote(quote, author, category);
+                  if (first) {
+                    quoteList.add(tmp_quote);
+                  } else {
+                    tmpQuoteList.add(tmp_quote);
+                  }
+                  if (!quotesCat.contains(category)) {
+                    edit.putInt(category, 0);
+                  }
                 }
-        );
-        queue.add(getRequest);
 
-
-    }
-
-    private void sortQuotes() {
-        final SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
-
-        Collections.sort(quoteList, new Comparator<Quote>() {
-            @Override
-            public int compare(Quote q1, Quote q2) {
-
-                return Integer.compare(quotesCat.getInt(q2.getCategory(), 0) ,(quotesCat.getInt(q1.getCategory(), 0)));
+              } catch (JSONException e) {
+                e.printStackTrace();
+              }
             }
-        });
-    }
 
-    //To get all the collections
+            edit.commit();
+          }
+        },
+        new Response.ErrorListener() {
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            Log.d("Error.Response", error.toString());
+          }
+        }
+    );
+    queue.add(getRequest);
+
+
+  }
+
+  private void sortQuotes() {
+    final SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
+
+    Collections.sort(quoteList, new Comparator<Quote>() {
+      @Override
+      public int compare(Quote q1, Quote q2) {
+
+        return Integer.compare(quotesCat.getInt(q2.getCategory(), 0),
+            (quotesCat.getInt(q1.getCategory(), 0)));
+      }
+    });
+  }
+
+  //To get all the collections
   private void getCollectionList() {
 
     //TODO: MARIUS Show the collections depending on the user's preferences. If it is not possible, show new categories everytime that the user opens the app
@@ -788,10 +896,10 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  //To search photos
+  /**
+   * Search photos on Unsplash based on query and display the result
+   */
   private void searchPhotoList(String query) {
-
-    //TODO: MARIUS Show the photos depending on the user's preferences and always new ones
 
     actual_collection = query;
 
@@ -834,9 +942,9 @@ public class MainActivity extends AppCompatActivity {
     String imgUrl = photo.getUrls().getRegular();
     likedPhotos.add(imgUrl); //Photo's source it's saved at the likes list
     writeImageUrlToLikedPhotosFile(imgUrl);
+    Log.i(SMART_WALLPAPERS_TAG, "photoLiked url -> " + imgUrl);
 
-    PreferencesManager
-        .writeToPreferenceFile(this, PreferencesManager.STRING, NEXT_IMAGE_TAG, imgUrl);
+    writeToPreferenceFile(this, STRING, NEXT_IMAGE_LOCATION, imgUrl);
     writeLikedPhotos();
 
     //UI thing
@@ -859,13 +967,6 @@ public class MainActivity extends AppCompatActivity {
   //What happens when a collection is liked
   public boolean collectionLiked(Collection collection) {
 
-    //TODO: MARIUS What happens when the users likes this collection?
-
-    //FIXME check wht this is
-    String html = collection.getLinks().getHtml();
-    String regularLink = collection.getCoverPhoto().getUrls().getRegular();
-//  /  collectionsList.add(html);
-
     String col_id = Integer.toString(collection.getId());
 
     if (photoMap.containsKey(col_id)) { //If the collection images have been read again...
@@ -876,6 +977,7 @@ public class MainActivity extends AppCompatActivity {
         // Idk if we still need this collection since the automatic changing of the wallpaper is done based on what is written in photos file
         likedPhotos.add(currentPhotoUrl); //Put all the photo's source at the likes list
         writeImageUrlToLikedPhotosFile(currentPhotoUrl);
+        Log.i(SMART_WALLPAPERS_TAG, "photoLiked url -> " + currentPhotoUrl);
 
       }
       photoMap.remove(col_id);
@@ -888,6 +990,7 @@ public class MainActivity extends AppCompatActivity {
                 String currentPhotoUrl = list.get(i).getUrls().getRegular();
                 likedPhotos.add(currentPhotoUrl);
                 writeImageUrlToLikedPhotosFile(currentPhotoUrl);
+                Log.i(SMART_WALLPAPERS_TAG, "photoLiked url -> " + currentPhotoUrl);
               }
             }
 
@@ -901,50 +1004,49 @@ public class MainActivity extends AppCompatActivity {
   }
 
   //What happens when a quote is liked
-   //FIX: loading new quotes takes too much time
-    // liked quotes are stored in the database
+  //FIX: loading new quotes takes too much time
+  // liked quotes are stored in the database
   public boolean quoteLiked(Quote quote, Boolean added) {
-      SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
-      SharedPreferences.Editor edit = quotesCat.edit();
-      String q_cat = quote.getCategory();
+    SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
+    SharedPreferences.Editor edit = quotesCat.edit();
+    String q_cat = quote.getCategory();
 
 //    likedQuotes.add(~String URL to where I can get it ~); ~Marius~
 
     likedQuotes.add(
-        String.format("%s;%s;%s", quote.getQuotation(), quote.getAuthor(), quote.getCategory())); //Put the quote at likes list
+        String.format("%s;%s;%s", quote.getQuotation(), quote.getAuthor(),
+            quote.getCategory())); //Put the quote at likes list
 
     mDatabaseLQHelper.addData(quote); // put liked quote in the database
 
-      //higher priority if quote was added by user
-      if (added){
-          if(!quotesCat.contains(q_cat)){
-              edit.putInt(q_cat, 3);
-          }
-          else{
-              int tmp_value = quotesCat.getInt(q_cat, 0);
-              tmp_value += 2;
-              edit.putInt(q_cat, tmp_value);
-          }
+    //higher priority if quote was added by user
+    if (added) {
+      if (!quotesCat.contains(q_cat)) {
+        edit.putInt(q_cat, 3);
+      } else {
+        int tmp_value = quotesCat.getInt(q_cat, 0);
+        tmp_value += 2;
+        edit.putInt(q_cat, tmp_value);
       }
-      else {
-          if (!quotesCat.contains(q_cat)) {
-              edit.putInt(q_cat, 0);
-          } else {
-              int tmp_value = quotesCat.getInt(q_cat, 0);
-              tmp_value += 1;
-              edit.putInt(q_cat, tmp_value);
+    } else {
+      if (!quotesCat.contains(q_cat)) {
+        edit.putInt(q_cat, 0);
+      } else {
+        int tmp_value = quotesCat.getInt(q_cat, 0);
+        tmp_value += 1;
+        edit.putInt(q_cat, tmp_value);
 
-          }
       }
-      edit.commit();
-    if(listViewAdapter.getCount() < 10){
+    }
+    edit.commit();
+    if (listViewAdapter.getCount() < 10) {
       getQuotes(false);
       listViewAdapter.addAll(tmpQuoteList);
       listViewAdapter.notifyDataSetChanged();
       tmpQuoteList.clear();
     }
 
-      return false;
+    return false;
   }
 
 
@@ -983,53 +1085,149 @@ public class MainActivity extends AppCompatActivity {
   //What happens when a quote is deleted
   //FIX: loading new quotes takes too much time
   public boolean quoteDeleted(Quote quote) {
-      SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
-      SharedPreferences.Editor edit = quotesCat.edit();
+    SharedPreferences quotesCat = getSharedPreferences("quotesCat", Context.MODE_PRIVATE);
+    SharedPreferences.Editor edit = quotesCat.edit();
 
-      int tmp_value = quotesCat.getInt(quote.getCategory(), 0);
-      tmp_value -= 1;
-      edit.putInt(quote.getCategory(), tmp_value);
-      if(listViewAdapter.getCount() < 10) {
-          getQuotes(false);
-          listViewAdapter.addAll(tmpQuoteList);
-          listViewAdapter.notifyDataSetChanged();
-          tmpQuoteList.clear();
-      }
-      edit.commit();
+    int tmp_value = quotesCat.getInt(quote.getCategory(), 0);
+    tmp_value -= 1;
+    edit.putInt(quote.getCategory(), tmp_value);
+    if (listViewAdapter.getCount() < 10) {
+      getQuotes(false);
+      listViewAdapter.addAll(tmpQuoteList);
+      listViewAdapter.notifyDataSetChanged();
+      tmpQuoteList.clear();
+    }
+    edit.commit();
     return false;
   }
 
   //____________________________________
 
-  //To get a random image and quote to set as a wallpaper
-  public void getA_Suggested_Image() {
+  /**
+   * Change wallpaper according to user's preferences
+   * The quote part should be added here as well
+   */
+  public static void changeAutomaticallyWallpaperQuote(
+      Context context, PhotoSearchListener listener) {
+    //Quote suggestedQuote = getSuggestedQuote();
+    HashMap<String, Integer> prefencesHM = FeatureExtractionHelper
+        .readWallpaperPreferences(context);
 
-    //TODO: MARIUS get photo depending on user's preferences... (now only takes photos that have been marked as like)
+    Unsplash localUnsplash = new Unsplash(MainActivity.CLIENT_ID);
 
-//    if (likedPhotos.size() != 0) {
-//      int pos = (int) Math.floor(Math.random() * (likedPhotos.size()));
-//      //writeString(MainActivity.this, ACTUAL_IMAGE, likedPhotos.get(pos), );
-//
-//    }
-//    if (likedQuotes.size() != 0) {
-//      int pos = (int) Math.floor(Math.random() * (likedQuotes.size()));
-//      String[] parts = likedQuotes.get(pos).split(";");
-//      //     writeString(MainActivity.this, ACTUAL_QUOTE, parts[0], );
-//      //   writeString(MainActivity.this, ACTUAL_QUOTE_AUTHOR, parts[1], );
-//    }
+    LinkedList<Entry<String, Integer>> preferencesList = FeatureExtractionHelper
+        .sortHM(prefencesHM);
 
-      Quote suggestedQuote = getSuggestedQuote();
+    if (!preferencesList.isEmpty()) {
+      Integer potentialLabelIndex = SharedPreferencesHelper
+          .readInt(context, MainActivity.NEXT_LABEL_INDEX);
 
-    setWallpaper();
-  }
-//for now returns random Quote form database
-    private Quote getSuggestedQuote() {
-      Quote suggestedQuote = new Quote("", "", "");
-      Cursor cursor = mDatabaseLQHelper.getRandomQuote();
-      while(cursor.moveToNext()) {
-           suggestedQuote = new Quote(cursor.getString(1), cursor.getString(2), cursor.getString(3));
+      int nextLabelIndex;
+      int size = preferencesList.size();
+
+      if (potentialLabelIndex <= size - 1){
+          nextLabelIndex = potentialLabelIndex;
+      }else{
+        nextLabelIndex = size - 1;
+      }
+
+      final String photoTag = preferencesList.get(nextLabelIndex).getKey();
+
+      nextLabelIndex++;
+
+      nextLabelIndex = nextLabelIndex % 3;
+
+      SharedPreferencesHelper.writeToPreferenceFile(context, INT, MainActivity.NEXT_LABEL_INDEX,
+          new Integer(nextLabelIndex));
+
+      //searchPhotoList(photoTag);
+      //change wallpaper acording to the tag
+      int pagesCount = 1;
+      int pageSize = 30;
+
+      if (WallpaperAlarm.wifiOn(context)) {
+        UnsplashSearchListener unsplashSearchListener = new UnsplashSearchListener(listener);
+        localUnsplash.searchPhotos(photoTag, pagesCount, pageSize, unsplashSearchListener);
 
       }
+
+
+    } else {
+      Toast.makeText(context,
+          "Your preferences haven't been tuned! \n Like some photos and try again later!",
+          Toast.LENGTH_LONG).show();
+    }
+
+    //setWallpaper();
+  }
+
+  @Override
+  public void onPhotoSearchComplete(String urlNextImage) {
+    if (WallpaperAlarm.wifiOn(this)) {
+      Picasso.get().load(urlNextImage).into(new Target() {
+        @Override
+        public void onBitmapLoaded(final Bitmap bitmap, LoadedFrom from) {
+
+          //FIXME add the quote part
+          //IN DEBUG MODE IT CHANGES THE WALLPAPER;
+          SetWallpaperQuoteTask task = new SetWallpaperQuoteTask(MainActivity.this,
+              bitmap, "", "", new ArrayList<String>());
+
+          Log.i(SMART_WALLPAPERS_TAG, "Direct changing of wallpaper based on preferences, thread started, onBitmapLoaded() ");
+         // new Thread(task).start();
+
+          //FIXME fails to change wallpaper
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                WallpaperManager.getInstance(MainActivity.this).setBitmap(bitmap);
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
+            }
+          });
+
+        }
+
+        @Override
+        public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+        }
+      });
+    }
+  }
+
+  /**
+   * Gives an index for which preferencesList(index) exists
+   */
+  private int getNextLabelIndex(Integer potentialLabelIndex,
+      LinkedList<Entry<String, Integer>> preferencesList) {
+    //base case
+    if (potentialLabelIndex == 0) {
+      return 0;
+    }
+
+    if (preferencesList.size() >= potentialLabelIndex + 1) {
+      return potentialLabelIndex;
+    } else {
+      return getNextLabelIndex(potentialLabelIndex - 1, preferencesList);
+    }
+  }
+
+  //for now returns random Quote form database
+  private Quote getSuggestedQuote() {
+    Quote suggestedQuote = new Quote("", "", "");
+    Cursor cursor = mDatabaseLQHelper.getRandomQuote();
+    while (cursor.moveToNext()) {
+      suggestedQuote = new Quote(cursor.getString(1), cursor.getString(2), cursor.getString(3));
+
+    }
 //      TODO: get map of categories and sort it by value
 //        boolean quote_found = false;
 //        for (String cat : list_of_sorted_categories) {
@@ -1054,11 +1252,12 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        }
 
-        return suggestedQuote;
-    }
+    return suggestedQuote;
+  }
 
-      //Set image as a wallpaper
+  //Set image as a wallpaper
   private void setWallpaper() {
+
     final String src = readString(this, ACTUAL_IMAGE);
     if (src != "" & src != null) {
       String quote = readString(this, ACTUAL_QUOTE);
@@ -1092,20 +1291,6 @@ public class MainActivity extends AppCompatActivity {
             quote_author, quoteDisplayInfo);
 
         new Thread(p).start();
-
-        //Download image to internal memory
-//        try{
-//          FileOutputStream imgFos = openFileOutput("SmartWallpaper_Photo.png", Context.MODE_PRIVATE);
-//          bitmap.compress(CompressFormat.PNG, 100, imgFos);
-//          Log.i("Marius", "onBitmapLoaded: " + MainActivity.this.getFilesDir().getAbsolutePath());
-//          // Toast.makeText(MainActivity.this, MainActivity.this.getFilesDir().getAbsolutePath(), Toast.LENGTH_SHORT).show();
-//          listAllSavedFiles();
-//
-//          imgFos.close();
-//        }catch (Exception e){
-//          Log.e(TAG, "onBitmapLoaded: Failed to download image" );
-//          Log.e(TAG, "onBitmapLoaded: "+ e.getStackTrace() );
-//        }
 
       }
 
@@ -1251,9 +1436,9 @@ public class MainActivity extends AppCompatActivity {
         mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface dialogInterface, int i) {
-            writeToPreferenceFile(MainActivity.this, PreferencesManager.STRING, ACTUAL_QUOTE,
+            writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE,
                 quoteList.get(position).getQuotation());
-            writeToPreferenceFile(MainActivity.this, PreferencesManager.STRING, ACTUAL_QUOTE_AUTHOR,
+            writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE_AUTHOR,
                 quoteList.get(position).getAuthor());
 
             collectQuoteDisplayInfo();
@@ -1274,6 +1459,7 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
 
       } else if (VIEW_MODE_GRIDVIEW == currentViewMode) {
+
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
 
         mBuilder.setMessage(String.format(getString(R.string.display_collection),
@@ -1286,8 +1472,8 @@ public class MainActivity extends AppCompatActivity {
             if (photoMap.containsKey(actual_collection)) {
               int pos = (int) Math.floor(Math.random() * (photoMap.get(actual_collection)
                   .size())); //Get a random position of an image in the collection
-              PreferencesManager.writeToPreferenceFile(MainActivity.this,
-                  PreferencesManager.STRING, ACTUAL_IMAGE,
+              writeToPreferenceFile(MainActivity.this,
+                  STRING, ACTUAL_IMAGE,
                   photoMap.get(actual_collection).get(pos).getUrls().getRegular());
 
               setWallpaper();
@@ -1299,8 +1485,8 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(List<Photo> list) {
                       int pos = (int) Math.floor(Math.random() * (list.size()));
                       photoMap.put(actual_collection, list);
-                      PreferencesManager.writeToPreferenceFile(MainActivity.this,
-                          PreferencesManager.STRING, ACTUAL_IMAGE,
+                      writeToPreferenceFile(MainActivity.this,
+                          STRING, ACTUAL_IMAGE,
                           list.get(pos).getUrls().getRegular());
 
                       setWallpaper();
@@ -1331,8 +1517,8 @@ public class MainActivity extends AppCompatActivity {
         mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface dialogInterface, int i) {
-            PreferencesManager.writeToPreferenceFile(MainActivity.this,
-                PreferencesManager.STRING, ACTUAL_IMAGE,
+            writeToPreferenceFile(MainActivity.this,
+                STRING, ACTUAL_IMAGE,
                 photoMap.get(actual_collection).get(position).getUrls().getRegular());
             setWallpaper();
           }
@@ -1364,20 +1550,20 @@ public class MainActivity extends AppCompatActivity {
                 int color_answer = color.getCheckedRadioButtonId();
                 int loc_answer = localization.getCheckedRadioButtonId();
 
-                rb_size = quoteDisplayLayout.findViewById(size_answer);
-                rb_color  = quoteDisplayLayout.findViewById(color_answer);
-                rb_loc = quoteDisplayLayout.findViewById(loc_answer);
-                if (quoteDisplayInfo.isEmpty()){
-                    quoteDisplayInfo.add((String) rb_size.getText());
-                    quoteDisplayInfo.add((String) rb_color.getText());
-                    quoteDisplayInfo.add ((String) rb_loc.getText());
-                } else {
-                    quoteDisplayInfo.set(0, ((String) rb_size.getText()));
-                    quoteDisplayInfo.set(1, ((String) rb_color.getText()));
-                    quoteDisplayInfo.set(2, (String) rb_loc.getText());
-                }
-                pw.dismiss();
+            rb_size = quoteDisplayLayout.findViewById(size_answer);
+            rb_color = quoteDisplayLayout.findViewById(color_answer);
+            rb_loc = quoteDisplayLayout.findViewById(loc_answer);
+            if (quoteDisplayInfo.isEmpty()) {
+              quoteDisplayInfo.add((String) rb_size.getText());
+              quoteDisplayInfo.add((String) rb_color.getText());
+              quoteDisplayInfo.add((String) rb_loc.getText());
+            } else {
+              quoteDisplayInfo.set(0, ((String) rb_size.getText()));
+              quoteDisplayInfo.set(1, ((String) rb_color.getText()));
+              quoteDisplayInfo.set(2, (String) rb_loc.getText());
             }
+            pw.dismiss();
+          }
         });
 
       quoteDisplayLayout.findViewById(R.id.withdraw_qd).setOnClickListener(new View.OnClickListener() {
@@ -1390,10 +1576,9 @@ public class MainActivity extends AppCompatActivity {
         pw.showAtLocation(quoteDisplayLayout, Gravity.CENTER, 0, 0);
 
 
+  }
 
-    }
-
-    //On item click listener
+  //On item click listener
   AdapterView.OnItemClickListener onItemClick = new AdapterView.OnItemClickListener() {
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, final int position, long l) {
@@ -1436,6 +1621,7 @@ public class MainActivity extends AppCompatActivity {
           "listAllSavedFiles: " + f.getAbsolutePath() + ", Size:" + (f.length() / 1000) + " KB");
     }
   }
+
 
 }
 
