@@ -17,6 +17,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
@@ -26,6 +27,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -58,6 +60,7 @@ import com.kc.unsplash.models.Collection;
 import com.kc.unsplash.models.Photo;
 import com.kc.unsplash.models.SearchResults;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Picasso.LoadedFrom;
 import com.squareup.picasso.Target;
 import java.io.File;
@@ -100,10 +103,10 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   private ListView listView;
   private GridView gridView;
   private FloatingActionButton search_fb;
+  private FloatingActionButton addQuote;
   private ListViewAdapter listViewAdapter;
   private GridViewAdapter gridViewAdapter;
   private ImageViewAdapter imageViewAdapter;
-  private ImageButton addQuote;
   private View quoteDisplayLayout, addNewQuote;
   private Parcelable listState;
   private Parcelable gridState;
@@ -172,9 +175,17 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
    */
   public static final String NEXT_PHOTO_NAME = "SW_Next_Photo.png";
 
+  //Variables of the thread to do the wallpaper auto-refresh
+  private List<Boolean> stopThreadList = new ArrayList<>();
+  private int stopThreadPos = 0;
 
   //variables for quotes pop up windows
   TextView newQuoteContent, newQuoteAuthor, newQuoteCat;
+
+  // global reference necessary for displaying wallpaper
+  // after first click - for calling onBitmapLoaded
+  // check: https://stackoverflow.com/questions/24180805/onbitmaploaded-of-target-object-not-called-on-first-load#answers
+  Target target;
 
   private String TAG = "MainActivity";
 
@@ -211,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     listView = findViewById(R.id.mylistview);
     gridView = findViewById(R.id.mygridview);
     search_fb = findViewById(R.id.search_floating_button);
-    addQuote = (ImageButton) findViewById(R.id.add_quote);
+    addQuote =  findViewById(R.id.add_quote);
 
     //Set listeners
     listView.setOnItemClickListener(onItemClick);
@@ -346,34 +357,40 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     });
 
     addQuote.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        LayoutInflater inflater = (LayoutInflater) MainActivity.this
-            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        addNewQuote = inflater.inflate(R.layout.add_quote, null);
-        float density = MainActivity.this.getResources().getDisplayMetrics().density;
-        final PopupWindow pw = new PopupWindow(addNewQuote, (int) density * 320,
-            (int) density * 333, true);
+        @Override
+        public void onClick(View view) {
+            LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            addNewQuote = inflater.inflate(R.layout.add_quote, null);
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            final PopupWindow pw = new PopupWindow(addNewQuote, (int) (size.x*0.95), (int)(size.y*0.8), true);
 
-        ((Button) addNewQuote.findViewById(R.id.save_qd))
-            .setOnClickListener(new View.OnClickListener() {
-              public void onClick(View v) {
-                Quote new_quote = getNewQuoteInfo();
-                quoteList.add(0, new_quote);
-                pw.dismiss();
-              }
+            addNewQuote.findViewById(R.id.save_qd).setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    Quote new_quote = getNewQuoteInfo();
+                    quoteList.add(0, new_quote);
+                    pw.dismiss();
+                }
             });
-        ((Button) addNewQuote.findViewById(R.id.save_and_like_qd))
-            .setOnClickListener(new View.OnClickListener() {
-              public void onClick(View v) {
-                Quote new_quote = getNewQuoteInfo();
-                quoteLiked(new_quote, true);
-                pw.dismiss();
-              }
-            });
-        pw.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-        pw.showAtLocation(addNewQuote, Gravity.CENTER, 0, 0);
-      }
+          addNewQuote.findViewById(R.id.save_and_like_qd).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+              Quote new_quote = getNewQuoteInfo();
+              quoteLiked(new_quote, true);
+              pw.dismiss();
+            }
+          });
+
+          addNewQuote.findViewById(R.id.withdraw_add).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+              pw.dismiss();
+            }
+          });
+
+
+            pw.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+            pw.showAtLocation(addNewQuote, Gravity.CENTER, 0, 0);
+        }
     });
 
   }
@@ -1250,7 +1267,13 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       }
 
       // Refactored this method by removing "context" and "src" parameters since they were obsolete (not used)
-      Picasso.get().load(src).into(srcToWallpaper(quote, quote_author));
+      // added resize and centerCrop to have wallpaper more or less in the size of the screen
+      Display display = getWindowManager().getDefaultDisplay();
+      Point size = new Point();
+      display.getSize(size);
+      target = srcToWallpaper(quote, quote_author);
+      Picasso.get().load(src).resize(size.x, size.y).centerCrop(0).into(target);
+
     }
   }
 
@@ -1258,13 +1281,13 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   private Target srcToWallpaper(final String quote,
       final String quote_author) {
 
-    Log.d(TAG, "srcToWallpaper: picassoImageTarget");
-    return new Target() {
+      target = new Target() {
 
       @Override
       public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
         SetWallpaperQuoteTask p = new SetWallpaperQuoteTask(MainActivity.this, bitmap, quote,
             quote_author, quoteDisplayInfo);
+
         new Thread(p).start();
 
       }
@@ -1280,6 +1303,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
         }
       }
     };
+      return target;
   }
 
   private void writeImageUrlToLikedPhotosFile(String imgUrl) {
@@ -1415,10 +1439,17 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
             writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE_AUTHOR,
                 quoteList.get(position).getAuthor());
 
-            setWallpaper();
             collectQuoteDisplayInfo();
+            setWallpaper();
 
 
+
+          }
+        });
+
+        mBuilder.setNegativeButton("no", new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialog, int id) {
+            dialog.cancel();
           }
         });
 
@@ -1498,24 +1529,24 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     }
   };
 
-  private void collectQuoteDisplayInfo() {
-    LayoutInflater inflater = (LayoutInflater) MainActivity.this
-        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    quoteDisplayLayout = inflater.inflate(R.layout.popup_quote_display, null);
-    float density = MainActivity.this.getResources().getDisplayMetrics().density;
-    final PopupWindow pw = new PopupWindow(quoteDisplayLayout, (int) density * 320,
-        (int) density * 333, true);
-    ((Button) quoteDisplayLayout.findViewById(R.id.save_qd))
-        .setOnClickListener(new View.OnClickListener() {
-          public void onClick(View v) {
-            RadioGroup size, color, localization;
-            RadioButton rb_size, rb_color, rb_loc;
-            size = quoteDisplayLayout.findViewById(R.id.quote_size);
-            color = quoteDisplayLayout.findViewById(R.id.quote_color);
-            localization = quoteDisplayLayout.findViewById(R.id.quote_loc);
-            int size_answer = size.getCheckedRadioButtonId();
-            int color_answer = color.getCheckedRadioButtonId();
-            int loc_answer = localization.getCheckedRadioButtonId();
+    private void collectQuoteDisplayInfo() {
+        LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        quoteDisplayLayout = inflater.inflate(R.layout.popup_quote_display, null);
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        final PopupWindow pw = new PopupWindow(quoteDisplayLayout,(int) (size.x*0.95), (int)(size.y*0.9), true);
+
+        quoteDisplayLayout.findViewById(R.id.save_qd).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                RadioGroup size, color, localization;
+                RadioButton rb_size, rb_color, rb_loc;
+                size = quoteDisplayLayout.findViewById(R.id.quote_size);
+                color = quoteDisplayLayout.findViewById(R.id.quote_color);
+                localization = quoteDisplayLayout.findViewById(R.id.quote_loc);
+                int size_answer = size.getCheckedRadioButtonId();
+                int color_answer = color.getCheckedRadioButtonId();
+                int loc_answer = localization.getCheckedRadioButtonId();
 
             rb_size = quoteDisplayLayout.findViewById(size_answer);
             rb_color = quoteDisplayLayout.findViewById(color_answer);
@@ -1532,8 +1563,15 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
             pw.dismiss();
           }
         });
-    pw.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-    pw.showAtLocation(quoteDisplayLayout, Gravity.CENTER, 0, 0);
+
+      quoteDisplayLayout.findViewById(R.id.withdraw_qd).setOnClickListener(new View.OnClickListener() {
+        public void onClick(View v) {
+            pw.dismiss();
+          }
+      });
+
+        pw.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        pw.showAtLocation(quoteDisplayLayout, Gravity.CENTER, 0, 0);
 
 
   }

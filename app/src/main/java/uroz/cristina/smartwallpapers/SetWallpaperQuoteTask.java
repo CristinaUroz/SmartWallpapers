@@ -39,8 +39,14 @@ public class SetWallpaperQuoteTask implements Runnable {
 
         //Process to add the quote at the photo
         Canvas canvas = new Canvas(bitmap);
-        String size, color, loc;
         Paint paint = new Paint();
+
+        float width = canvas.getWidth();
+        float height = canvas.getHeight();
+        String size, color, loc;
+        StringBuffer finalQuote;
+        float textSize = 0;
+
         if (!quote_display_info.isEmpty()) {
             size = quote_display_info.get(0);
             color = quote_display_info.get(1);
@@ -51,46 +57,64 @@ public class SetWallpaperQuoteTask implements Runnable {
             color = "white";
             loc = "middle";
         }
+
         if (color.equals( "black")){
             paint.setColor(Color.BLACK); // Text Color
+            paint.setShadowLayer(10,0,0,Color.WHITE);
         }
         else if (color.equals("green")){
             paint.setColor(Color.GREEN); // Text Color
+            paint.setShadowLayer(10,0,0,Color.BLACK);
         }
         else{
             paint.setColor(Color.WHITE); // Text Color
+            paint.setShadowLayer(10,0,0,Color.BLACK);
         }
-        StringBuffer finalQuote;
+
 
         if (size.equals("large")){
-            paint.setTextSize(65); // Text Size
-            finalQuote = prepareQuoteToDisplay(quote, 0);
+            textSize = height * 0.05f;
+
         }
         else if (size.equals("medium")){
-            paint.setTextSize(50); // Text Size
-            finalQuote = prepareQuoteToDisplay(quote, 1);
+            textSize = height * 0.037f;
+
         }
         else {
-            paint.setTextSize(30); // Text Size
-            finalQuote = prepareQuoteToDisplay(quote, 2);
+            textSize = height * 0.025f;
         }
-        paint.setShadowLayer(5,0,0,Color.GRAY);
+
+
+        paint.setTextSize(textSize);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
         paint.setTextAlign(Paint.Align.CENTER);
         canvas.drawBitmap(bitmap, 0, 0, paint);
 
+        finalQuote = prepareQuoteToDisplay(quote, paint, width);
+        String[] finalQuoteArray = String.valueOf(finalQuote).split("\n");
+        int linesToMove = finalQuoteArray.length/2;
 
-        int x = canvas.getWidth()/2, y = canvas.getHeight()/3;
-        for (String line: String.valueOf(finalQuote).split("\n")) {
+
+        float x = (float) (width * 0.5);
+        float y = (float) (height * 0.5) - linesToMove * textSize;
+        if (loc.equals( "top")){
+            y = (float) (height * 0.2);
+        }
+        else if (loc.equals("bottom")){
+            y = (float) (height * 0.65) - (linesToMove + 1) * textSize;
+        }
+
+        for (String line: finalQuoteArray) {
             canvas.drawText(line, x, y, paint);
             y += paint.descent() - paint.ascent();
         }
 
-        paint.setTextSize(24); // Text Size
+        // writing author
+        paint.setTextSize(textSize * 0.5f); // Text Size
         paint.setShadowLayer(3,0,0,Color.GRAY);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
         paint.setTextAlign(Paint.Align.LEFT);
-        canvas.drawText(quote_author, canvas.getWidth()/2, canvas.getHeight()/3*2, paint);//Write the author
+        canvas.drawText(quote_author, width/4, (float) y, paint);//Write the author
 
         //Set bitmap as a wallpaper
         try{
@@ -106,18 +130,30 @@ public class SetWallpaperQuoteTask implements Runnable {
         }
 
     }
-    // temporary solution
-    private StringBuffer prepareQuoteToDisplay(String quote, int text_size) {
+
+    private StringBuffer prepareQuoteToDisplay(String quote, Paint paint, float width) {
 
         StringBuffer finalQuote = new StringBuffer();
+        StringBuffer tmpQuote = new StringBuffer();
         String[] splited = quote.split("\\s+");
+
         for (int i=0; i<splited.length; ++i){
-            if(i != 0 && i % (text_size + 4) == 0){
-                finalQuote.append("\n");
-            }
-            finalQuote.append(splited[i] + " ");
+                if (paint.measureText(tmpQuote.toString() + splited[i] + " ") >= width * 0.7f) {
+                    tmpQuote.append("\n");
+                    finalQuote.append(tmpQuote);
+                    tmpQuote.setLength(0);
+                    --i;
+                }
+                else{
+                    if(tmpQuote.length() != 0)
+                        tmpQuote.append(" ");
+                    tmpQuote.append(splited[i]);
+                }
 
     }
+        if (tmpQuote.length() != 0){
+            finalQuote.append(tmpQuote);
+        }
 
         return finalQuote;
     }

@@ -8,7 +8,7 @@
 
 
 
-    <ImageButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/add_quote"
         android:layout_marginTop="10dp"
         android:layout_width="60dp"
