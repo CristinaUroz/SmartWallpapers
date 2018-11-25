@@ -55,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="2dp"
             android:background="@color/red"
             android:text="cancel" />
 
@@ -74,7 +74,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginStart="45dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginLeft="2dp"
             android:background="#007299"
             android:text="like" />
     </LinearLayout>
