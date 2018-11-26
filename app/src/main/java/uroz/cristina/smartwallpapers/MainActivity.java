@@ -8,6 +8,7 @@ import static uroz.cristina.smartwallpapers.SharedPreferencesHelper.writeToPrefe
 
 import android.Manifest.permission;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -248,9 +249,9 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       writeToPreferenceFile(this, STRING, MainActivity.FIRST_LAUNCH, "no");
       writeToPreferenceFile(this, INT, MainActivity.NEXT_LABEL_INDEX, 0);
 
-      int intervalMillis = 60 * 1000; //60 seconds, debugging purposes
+     // int intervalMillis = 60 * 1000; //60 seconds, debugging purposes
 
-      //int intervalMillis = 30 * 60 * 1000;
+      int intervalMillis = 30 * 60 * 1000;
       writeToPreferenceFile(this, INT, INTERVAL_MILLIS,
           intervalMillis);
 
@@ -507,7 +508,6 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
 
-    //TODO: Put an option to allow the user write quotes
 
     switch (item.getItemId()) {
       case R.id.change_view: //To change the view and the menu icon
@@ -535,7 +535,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
         mBuilder.setMessage(R.string.app_info);
-        AlertDialog dialog = mBuilder.create();
+        final AlertDialog dialog = mBuilder.create();
         dialog.show();
         break;
 
@@ -630,6 +630,24 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
       case R.id.showPrefFileID:
         FeatureExtractionHelper.showWallpaperPreferenceFileContent(this);
+        break;
+
+      case R.id.contactUs:
+        Builder builder1 = new Builder(this);
+
+        builder1.setTitle("Contact us");
+        builder1.setMessage(
+            "In order to provide feedback or report bugs please email:\n B00350529@studentmail.uws.ac.uk \n cristina5696@gmail.com \n B00358949@studenmail.uws.ac.uk");
+
+        builder1.setPositiveButton("Ok", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            dialogInterface.dismiss();
+          }
+        });
+
+        builder1.create().show();
+
         break;
     }
     return super.onOptionsItemSelected(item);

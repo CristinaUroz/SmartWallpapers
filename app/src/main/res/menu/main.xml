@@ -44,5 +44,15 @@
     app:showAsAction="ifRoom">
   </item>
 
+  <item
+    android:checkable="false"
+    android:visible="true"
+    android:title="Contact Us"
+    android:id="@+id/contactUs"
+    android:enabled="true"
+    app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+    app:showAsAction="ifRoom">
+  </item>
+
 
 </menu>

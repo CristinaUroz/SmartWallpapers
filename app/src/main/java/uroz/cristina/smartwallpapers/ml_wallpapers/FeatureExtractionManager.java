@@ -172,14 +172,14 @@ public class FeatureExtractionManager implements EvaluateImageTaskListener {
     //showContent(LABEL_DETECTION, labelResults);
 
     //delete the photo because is no longer needed
-//    String processedPhotoPath = SharedPreferencesHelper
-//        .readString(context, MainActivity.NEXT_IMAGE_LOCATION);
-//    File imageFile = new File(processedPhotoPath);
-//
-//    if (imageFile.exists()) {
-//      imageFile.delete();
-//      Log.i(SMART_WALLPAPERS_TAG, "onLandmarkDetected -> deleted photo " + processedPhotoPath  );
-//    }
+    String processedPhotoPath = SharedPreferencesHelper
+        .readString(context, MainActivity.NEXT_IMAGE_LOCATION);
+    File imageFile = new File(processedPhotoPath);
+
+    if (imageFile.exists()) {
+      imageFile.delete();
+      Log.i(SMART_WALLPAPERS_TAG, "onLandmarkDetected -> deleted photo " + processedPhotoPath  );
+    }
 //
 //    Log.i(SMART_WALLPAPERS_TAG, "Landmarks: " + results);
 
