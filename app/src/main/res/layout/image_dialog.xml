@@ -5,7 +5,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginTop="0dp"
-    android:layout_marginBottom="0dp"
+    android:layout_marginBottom="10dp"
     android:orientation="vertical"
     android:background="#ffffff">
 
@@ -16,93 +16,104 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="center_horizontal"
         android:paddingBottom="0dp"
-        android:paddingTop="0dp"
+        android:paddingTop="90dp"
         app:srcCompat="@android:drawable/btn_plus" />
 
     <ImageView
         android:id="@+id/previousViewD"
         android:layout_width="156dp"
-        android:layout_height="250dp"
+        android:layout_height="230dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="58dp"
-
         android:layout_weight="1"
+        android:layout_centerVertical="true"
         android:foregroundGravity="center_vertical"
         app:srcCompat="@android:color/transparent" />
 
     <ImageView
         android:id="@+id/nextViewD"
         android:layout_width="167dp"
-        android:layout_height="250dp"
+        android:layout_height="230dp"
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/previousViewD"
+        android:layout_centerVertical="true"
         android:layout_marginRight="5dp"
         android:layout_weight="1"
         app:srcCompat="@android:color/transparent" />
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentStart="true"
+    <LinearLayout
+        android:layout_width="317dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/txtTitleD"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-        android:background="#ffffff">
-
-        <ImageView
-            android:id="@+id/likeViewD"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="5dp"
-            app:srcCompat="@drawable/like_icon" />
+        <TextView
+            android:id="@+id/txtAuthorD"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textAlignment="center" />
 
         <LinearLayout
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_weight="1"
-            android:layout_marginTop="5dp"
-            android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/txtTitleD"
+            <ImageView
+                android:id="@+id/likeViewD"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="TextView"
-                android:textAlignment="center"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_height="30dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/like_icon" />
 
-            <TextView
-                android:id="@+id/txtAuthorD"
+            <ImageView
+                android:id="@+id/setViewD"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="TextView"
-                android:textAlignment="center" />
+                android:layout_height="30dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/set" />
 
+            <ImageView
+                android:id="@+id/deleteViewD"
+                android:layout_width="match_parent"
+                android:layout_height="28dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/delete_icon" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/deleteViewD"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/delete_icon" />
+    </LinearLayout>
 
-    </RelativeLayout>
+    <ImageButton
+        android:id="@+id/closeButton"
+        android:layout_width="34dp"
+        android:layout_height="36dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
 </RelativeLayout>

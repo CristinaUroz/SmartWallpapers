@@ -52,10 +52,20 @@
         android:id="@+id/likeViewL"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="21dp"
-        app:layout_constraintEnd_toStartOf="@+id/deleteViewL"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toStartOf="@+id/setViewL"
         app:layout_constraintTop_toBottomOf="@id/txtAuthorL"
         app:srcCompat="@drawable/like_icon" />
+
+    <ImageView
+        android:id="@+id/setViewL"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toStartOf="@+id/deleteViewL"
+        app:layout_constraintTop_toBottomOf="@id/txtAuthorL"
+        app:srcCompat="@drawable/set" />
 
 </android.support.constraint.ConstraintLayout>
