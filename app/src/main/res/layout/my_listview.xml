@@ -6,13 +6,21 @@
     android:layout_height="match_parent"
     android:background="#d1d1d1">
 
-
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/see_added"
+        android:layout_marginTop="10dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="20dp"
+        android:layout_gravity="start"
+        app:srcCompat="@android:drawable/ic_menu_view" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/add_quote"
         android:layout_marginTop="10dp"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="20dp"
         android:layout_gravity="end"
         app:srcCompat="@android:drawable/ic_input_add" />
 
@@ -21,7 +29,7 @@
         android:layout_height="match_parent"
         android:id="@+id/mylistview"
         android:cacheColorHint="#00000000"
-        android:paddingTop="80dp"
+        android:layout_marginTop="90dp"
         android:dividerHeight="10dp"
         android:divider="#d1d1d1"
         android:layout_marginLeft="10dp"

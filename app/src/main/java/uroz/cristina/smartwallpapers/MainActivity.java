@@ -105,13 +105,15 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   //Variables for the layout
   private ViewStub stubGrid;
   private ViewStub stubList;
-  private ListView listView;
+  private ViewStub stubAddQ;
+  private ListView listView, addedQuotesView;
   private GridView gridView;
   private FloatingActionButton search_fb;
-  private FloatingActionButton addQuote;
+  private FloatingActionButton addQuote, seeAdded;
   private ListViewAdapter listViewAdapter;
   private GridViewAdapter gridViewAdapter;
   private ImageViewAdapter imageViewAdapter;
+  private AddedQuotesAdapter addedQuotesAdapter;
   private View quoteDisplayLayout, addNewQuote;
   private Parcelable listState;
   private Parcelable gridState;
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   static final int VIEW_MODE_LISTVIEW = 0;
   static final int VIEW_MODE_GRIDVIEW = 1;
   static final int VIEW_MODE_IMAGEVIEW = 2;
+  static final int VIEW_MODE_ADDED = 3;
 
   // Menu variables
   private Menu optionsMenu;
@@ -153,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   private final int perPage = 100; //Number of categories displyed, number of photos displayed in a category
 
   //variables for Database to store liked quotes
+  public static String TABLE_LIKED_QUOTES = "liked_quotes";
+  public static String TABLE_ADDED_QUOTES = "added_quotes";
   DatabaseLikedQuotesHelper mDatabaseLQHelper;
 
 
@@ -214,10 +219,12 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     //Find layout viewstub items
     stubList = (ViewStub) findViewById(R.id.stub_list);
     stubGrid = (ViewStub) findViewById(R.id.stub_grid);
+    stubAddQ = (ViewStub) findViewById(R.id.stub_addQ);
 
     //Inflate ViewStub before get view
     stubList.inflate();
     stubGrid.inflate();
+    stubAddQ.inflate();
 
     //Get current view mode in share reference
     SharedPreferences sharedPreferences = getSharedPreferences("viewMode", MODE_PRIVATE);
@@ -226,8 +233,11 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     //Find layout items
     listView = findViewById(R.id.mylistview);
     gridView = findViewById(R.id.mygridview);
+    addedQuotesView = findViewById(R.id.plainlistview);
     search_fb = findViewById(R.id.search_floating_button);
-    addQuote =  findViewById(R.id.add_quote);
+    addQuote = findViewById(R.id.add_quote);
+    seeAdded = findViewById(R.id.see_added);
+
 
     //Set listeners
     listView.setOnItemClickListener(onItemClick);
@@ -374,6 +384,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
                     Quote new_quote = getNewQuoteInfo();
                     listViewAdapter.insert(new_quote, 0);
                     listViewAdapter.notifyDataSetChanged();
+                  mDatabaseLQHelper.addData(TABLE_ADDED_QUOTES, new_quote);
                     pw.dismiss();
                 }
             });
@@ -381,6 +392,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
             public void onClick(View v) {
               Quote new_quote = getNewQuoteInfo();
               quoteLiked(new_quote, true);
+              mDatabaseLQHelper.addData(TABLE_ADDED_QUOTES, new_quote);
               pw.dismiss();
             }
           });
@@ -391,11 +403,20 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
             }
           });
 
-
             pw.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
             pw.showAtLocation(addNewQuote, Gravity.CENTER, 0, 0);
         }
     });
+
+    seeAdded.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        currentViewMode = VIEW_MODE_ADDED;
+        switchView();
+      }
+    });
+
+
 
   }
 
@@ -669,6 +690,10 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       getSupportActionBar().setTitle("Categories");
       stubList.setVisibility(View.VISIBLE);
       stubGrid.setVisibility(View.GONE);
+    } else if (VIEW_MODE_ADDED == currentViewMode) {
+      getSupportActionBar().setTitle("Your Quotes");
+      stubAddQ.setVisibility(View.VISIBLE);
+      stubList.setVisibility(View.GONE);
     } else {
       getSupportActionBar().setTitle("Categories");
       stubList.setVisibility(View.GONE);
@@ -688,7 +713,12 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       gridViewAdapter = new GridViewAdapter(this, R.layout.grid_item, collectionsList);
       gridView.setAdapter(gridViewAdapter);
       gridView.onRestoreInstanceState(gridState);
-    } else {
+    }  else if (VIEW_MODE_ADDED == currentViewMode){
+      ArrayList<Quote> addedQuotes = getAddedQuotes();
+      addedQuotesAdapter = new AddedQuotesAdapter(this, R.layout.added_quote_item, addedQuotes);
+      addedQuotesView.setAdapter(addedQuotesAdapter);
+      optionsMenu.getItem(CHANGE_VIEW_MODE).setIcon(icon_revertgrid);
+    }else {
       imageViewAdapter = new ImageViewAdapter(this, R.layout.grid_item,
           photoMap.get(actual_collection));
       gridView.setAdapter(imageViewAdapter);
@@ -1076,7 +1106,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
         String.format("%s;%s;%s", quote.getQuotation(), quote.getAuthor(),
             quote.getCategory())); //Put the quote at likes list
 
-    mDatabaseLQHelper.addData(quote); // put liked quote in the database
+    mDatabaseLQHelper.addData(TABLE_LIKED_QUOTES, quote); // put liked quote in the database
 
     //higher priority if quote was added by user
     if (added) {
@@ -1524,6 +1554,19 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
         AlertDialog alertDialog = quotDispDialog.create();
         alertDialog.show();
 
+  }
+
+  private ArrayList<Quote> getAddedQuotes() {
+    ArrayList<Quote> addedQuotes = new ArrayList<>();
+    Cursor cursor;
+    cursor = mDatabaseLQHelper.getData(TABLE_ADDED_QUOTES);
+    if (cursor.moveToFirst()) {
+      while (!cursor.isAfterLast()) {
+        addedQuotes.add(new Quote(cursor.getString(1), cursor.getString(2), cursor.getString(3)));
+        cursor.moveToNext();
+      }
+    }
+    return addedQuotes;
   }
 
   //On item click listener

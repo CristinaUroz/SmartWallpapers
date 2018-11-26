@@ -22,4 +22,11 @@
         android:inflatedId="@+id/showlayout"
         android:layout="@layout/my_gridview" />
 
+    <ViewStub
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/stub_addQ"
+        android:inflatedId="@+id/showlayout"
+        android:layout="@layout/plain_listview" />
+
 </LinearLayout>

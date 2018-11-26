@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SmartWallpapers</string>
+    <string name="ok">OK</string>
+    <string name="info">Tutorial</string>
+    <string name="timer">Timer</string>
+    <string name="photo_refresh_interval">Ustaw czas odświeżania tapety</string>
+    <string name="refresh_info">Wprowadź czas odświeżania w minutach</string>
+    <string name="apply">zastosuj</string>
+    <string name="display_quote">Czy chcesz wyświetlić ten cytat na swojej tapecie?</string>
+    <string name="display_collection">Czy chcesz wyświetlić %s to zdjęcie jako tapetę?</string>
+    <string name="display_photo">Czy chcesz wyświetlić to zdjęcie jako tapetę?</string>
+    <string name="Search_photos">Wyszukaj zdjęcia.</string>
+    <string name="Search">Wyszukaj</string>
+    <string name="search_from_your_localization">Wyszukaj zdjęcia związane z twoją obecną lokalizacją.</string>
+    <string name="enter_word">Wprowadź wyszukiwane słowo.</string>
+    <string name="quote_size_question">Wybierz rozmiar.</string>
+    <string name="qd_small">mały</string>
+    <string name="qd_medium">średni</string>
+    <string name="qd_large">duży</string>
+    <string name="quote_color_question">Wybierz kolor:</string>
+    <string name="qd_white">biały</string>
+    <string name="qd_black">czarny</string>
+    <string name="qd_green">zielony</string>
+    <string name="quote_localization_question">Wybierz lokalizację:</string>
+    <string name="qd_top">góra</string>
+    <string name="qd_middle">środek</string>
+    <string name="qd_bottom">dół</string>
+    <string name="prefMenuItem">Zobacz preferencje</string>
+    <string name="app_info">" Zmień tapetę naciskając środkowy przycisk na polu z obrazem/cytatem.     \\n\\nNaciśnij, aby wejść w kolekcję.     \\n\\nNaciśnij, aby zobaczyć zdjęcie.     \\n\\n Na pasku ikon znajdują się (od lewej):     \\n \\t -> automatyczne odświeżenie tapety     \\n \\t -> zmiana widoku ze zdjęć/cytatów     \\n \\t -> ustawienia  "</string>
+</resources>

@@ -6,11 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.util.List;
 
 public class DatabaseLikedQuotesHelper extends SQLiteOpenHelper {
     public static final String TAG = "DatabaseLQH";
     public static String TABLE_NAME = "liked_quotes";
+    public static String TABLE_ADDED_QUOTES = "added_quotes";
     public static final String COL1 = "ID";
     public static final String COL2 = "quote_content";
     public static final String COL3 = "quote_author";
@@ -21,10 +21,15 @@ public class DatabaseLikedQuotesHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String createTable = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        String createTableLikedQ = "CREATE TABLE " + TABLE_NAME + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "quote_content TEXT, quote_author TEXT, quote_category TEXT)";
 
-        db.execSQL(createTable);
+        String createTableAddedQ = "CREATE TABLE " + TABLE_ADDED_QUOTES + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "quote_content TEXT, quote_author TEXT, quote_category TEXT)";
+
+
+        db.execSQL(createTableLikedQ);
+        db.execSQL(createTableAddedQ);
 
     }
 
@@ -32,10 +37,11 @@ public class DatabaseLikedQuotesHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
 
         db.execSQL("DROP TABLE IF EXISTS '" + TABLE_NAME + "'");
+        db.execSQL("DROP TABLE IF EXISTS '" + TABLE_ADDED_QUOTES + "'");
         onCreate(db);
     }
 
-    public boolean addData (Quote newQuote){
+    public boolean addData (String table_name, Quote newQuote){
         long result = -1;
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
@@ -45,7 +51,7 @@ public class DatabaseLikedQuotesHelper extends SQLiteOpenHelper {
         contentValues.put(COL4, newQuote.getCategory());
 
 
-        result = db.insert(TABLE_NAME, null, contentValues);
+        result = db.insert(table_name, null, contentValues);
         db.setTransactionSuccessful();
         db.endTransaction();
 
@@ -56,9 +62,9 @@ public class DatabaseLikedQuotesHelper extends SQLiteOpenHelper {
         }
 
     }
-    public Cursor getData(){
+    public Cursor getData(String table_name){
         SQLiteDatabase db = this.getWritableDatabase();
-        String query = "SELECT * FROM " + TABLE_NAME;
+        String query = "SELECT * FROM " + table_name;
         Cursor data = db.rawQuery(query, null);
         return data;
 
