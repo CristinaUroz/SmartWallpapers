@@ -3,6 +3,7 @@ package uroz.cristina.smartwallpapers;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -21,74 +22,82 @@ import static uroz.cristina.smartwallpapers.SharedPreferencesHelper.writeToPrefe
 
 public class ImageViewAdapter extends ArrayAdapter<Photo> {
 
-    private Context context;
-    static final String ACTUAL_IMAGE = "ACTUAL_IMAGE"; //To save the last wallpaper image set from this app
+  private Context context;
+  static final String ACTUAL_IMAGE = "ACTUAL_IMAGE"; //To save the last wallpaper image set from this app
 
-    public ImageViewAdapter(@NonNull Context context, int resource, @NonNull List<Photo> objects) {
-        super(context, resource, objects);
-        this.context=context;
+  public ImageViewAdapter(@NonNull Context context, int resource, @NonNull List<Photo> objects) {
+    super(context, resource, objects);
+    this.context = context;
+  }
+
+  @NonNull
+  @Override
+  public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
+    View v = convertView;
+    if (null == v) {
+      LayoutInflater inflater = (LayoutInflater) getContext()
+          .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      v = inflater.inflate(R.layout.image_item, null);
     }
 
-    @NonNull
-    @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+    final Photo photo = getItem(position);
 
-        View v = convertView;
-        if (null == v) {
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = inflater.inflate(R.layout.image_item, null);
+    ImageView img = (ImageView) v.findViewById(R.id.ImageViewI);
+    ImageView delete = (ImageView) v.findViewById(R.id.deleteViewI);
+    ImageView set = (ImageView) v.findViewById(R.id.setViewI);
+    final ImageView like = (ImageView) v.findViewById(R.id.likeViewI);
+
+    Picasso.get().load(photo.getUrls().getRegular()).into(img);
+
+    like.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (context instanceof MainActivity) {
+          ((MainActivity) context).photoLiked(photo);
         }
+        remove(photo);
+      }
+    });
 
-        final Photo photo = getItem(position);
+    delete.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (context instanceof MainActivity) {
+          ((MainActivity) context).dislikedPhoto(photo);
+        }
+        remove(photo);
+      }
+    });
 
-        ImageView img = (ImageView) v.findViewById(R.id.ImageViewI);
-        ImageView delete = (ImageView) v.findViewById(R.id.deleteViewI);
-        ImageView set = (ImageView) v.findViewById(R.id.setViewI);
-        final ImageView like = (ImageView) v.findViewById(R.id.likeViewI);
+    set.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(((MainActivity) context));
 
-        Picasso.get().load(photo.getUrls().getRegular()).into(img);
-
-        like.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(context instanceof MainActivity){
-                    ((MainActivity)context).photoLiked(photo);
-                }
-                remove(photo);
-            }
+        mBuilder.setMessage(R.string.display_photo);
+        mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            writeToPreferenceFile(((MainActivity) context),
+                STRING, ACTUAL_IMAGE,
+                photo.getUrls().getRegular());
+            ((MainActivity) context).setWallpaper();
+          }
         });
 
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(context instanceof MainActivity){
-                    ((MainActivity)context).dislikedPhoto(photo);
-                }
-                remove(photo);
-            }
+        mBuilder.setNegativeButton("No", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            dialogInterface.dismiss();
+          }
         });
 
-        set.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder mBuilder = new AlertDialog.Builder(((MainActivity)context));
+        AlertDialog dialog = mBuilder.create();
+        dialog.show();
+      }
+    });
 
-                mBuilder.setMessage(R.string.display_photo);
-                mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        writeToPreferenceFile(((MainActivity)context),
-                                STRING, ACTUAL_IMAGE,
-                                photo.getUrls().getRegular());
-                        ((MainActivity)context).setWallpaper();
-                    }
-                });
-
-                AlertDialog dialog = mBuilder.create();
-                dialog.show();
-            }
-        });
-
-        return v;
-    }
+    return v;
+  }
 }

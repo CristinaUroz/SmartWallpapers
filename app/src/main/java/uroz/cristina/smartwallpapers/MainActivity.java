@@ -59,6 +59,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.kc.unsplash.Unsplash;
+import com.kc.unsplash.Unsplash.OnLinkLoadedListener;
 import com.kc.unsplash.Unsplash.OnPhotosLoadedListener;
 import com.kc.unsplash.models.Collection;
 import com.kc.unsplash.models.Photo;
@@ -230,9 +231,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
     //Set listeners
     listView.setOnItemClickListener(onItemClick);
-    listView.setOnItemLongClickListener(onLongClick);
     gridView.setOnItemClickListener(onItemClick);
-    gridView.setOnItemLongClickListener(onLongClick);
 
     //Initialize database
     mDatabaseLQHelper = new DatabaseLikedQuotesHelper(MainActivity.this);
@@ -766,6 +765,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
           if (new_position >= photoMap.get(actual_collection).size()) {
             new_position = 0;
           }
+
           createPhotoDialog(new_position);
         }
       }
@@ -784,6 +784,13 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
                     STRING, ACTUAL_IMAGE,
                     photoMap.get(actual_collection).get(position).getUrls().getRegular());
             setWallpaper();
+          }
+        });
+
+        mBuilder.setNegativeButton("No", new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            dialogInterface.dismiss();
           }
         });
 
@@ -1470,110 +1477,6 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     return true;
   }
 
-  //On item long click listener
-  AdapterView.OnItemLongClickListener onLongClick = new AdapterView.OnItemLongClickListener() {
-    @Override
-    public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position,
-        long l) {
-
-      if (VIEW_MODE_LISTVIEW == currentViewMode) {
-
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-        mBuilder.setMessage(
-            R.string.display_quote); //Creates a dialog asking the user if he wants to display this as a wallpaper
-        mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE,
-                quoteList.get(position).getQuotation());
-            writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE_AUTHOR,
-                quoteList.get(position).getAuthor());
-              collectQuoteDisplayInfo();
-          }
-        });
-
-        mBuilder.setNegativeButton("no", new DialogInterface.OnClickListener() {
-          public void onClick(DialogInterface dialog, int id) {
-            dialog.cancel();
-          }
-        });
-
-        AlertDialog dialog = mBuilder.create();
-        dialog.show();
-
-      } else if (VIEW_MODE_GRIDVIEW == currentViewMode) {
-
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-        mBuilder.setMessage(String.format(getString(R.string.display_collection),
-            collectionsList.get(position).getTitle()));
-
-        mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            actual_collection = Integer.toString(collectionsList.get(position).getId());
-            if (photoMap.containsKey(actual_collection)) {
-              int pos = (int) Math.floor(Math.random() * (photoMap.get(actual_collection)
-                  .size())); //Get a random position of an image in the collection
-              writeToPreferenceFile(MainActivity.this,
-                  STRING, ACTUAL_IMAGE,
-                  photoMap.get(actual_collection).get(pos).getUrls().getRegular());
-
-              setWallpaper();
-            } else { //If we haven't read the photos of this collection before
-              unsplash.getCollectionPhotos(actual_collection, page, perPage,
-                  new Unsplash.OnPhotosLoadedListener() {
-
-                    @Override
-                    public void onComplete(List<Photo> list) {
-                      int pos = (int) Math.floor(Math.random() * (list.size()));
-                      photoMap.put(actual_collection, list);
-                      writeToPreferenceFile(MainActivity.this,
-                          STRING, ACTUAL_IMAGE,
-                          list.get(pos).getUrls().getRegular());
-
-                      setWallpaper();
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                    }
-                  });
-            }
-          }
-        });
-
-        mBuilder.setNegativeButton("No", new OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            dialogInterface.dismiss();
-          }
-        });
-
-        AlertDialog dialog = mBuilder.create();
-        dialog.show();
-
-      } else {
-        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
-
-        mBuilder.setMessage(R.string.display_photo);
-        mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialogInterface, int i) {
-            writeToPreferenceFile(MainActivity.this,
-                STRING, ACTUAL_IMAGE,
-                photoMap.get(actual_collection).get(position).getUrls().getRegular());
-            setWallpaper();
-          }
-        });
-
-        AlertDialog dialog = mBuilder.create();
-        dialog.show();
-      }
-      return false;
-    }
-  };
 
     void collectQuoteDisplayInfo() {
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
