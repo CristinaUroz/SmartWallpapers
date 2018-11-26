@@ -23,10 +23,13 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -146,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   public static final String FILENAME_QUOTES = "liked_quotes.txt";
   private static final int MAX_BYTES = 8000;
   private final int page = 1;   //number of pages
-  private final int perPage = 30; //Number of categories displyed, number of photos displayed in a category
+  private final int perPage = 100; //Number of categories displyed, number of photos displayed in a category
 
   //variables for Database to store liked quotes
   DatabaseLikedQuotesHelper mDatabaseLQHelper;
@@ -263,8 +266,8 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
       wallpaperAlarm.setWallpaperChangingAlarm(this);
       wallpaperAlarm.setDownloadAlarm(this);
 
-      checkWritePermission();
-      checkSetWallpaperPermission();
+       checkWritePermission();
+       checkSetWallpaperPermission();
     }
 
     search_fb.setOnClickListener(new View.OnClickListener() {
@@ -398,18 +401,18 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   }
 
   private void checkSetWallpaperPermission() {
-    boolean needPermision = checkSelfPermission(permission.SET_WALLPAPER) != PackageManager.PERMISSION_GRANTED;
+    boolean needPermision = ContextCompat.checkSelfPermission(this,permission.SET_WALLPAPER) != PackageManager.PERMISSION_GRANTED;
     if (needPermision) {
-      requestPermissions(new String[]{permission.SET_WALLPAPER}, REQUEST_SET_WALLPAPER);
+      ActivityCompat.requestPermissions(this,new String[]{permission.SET_WALLPAPER}, REQUEST_SET_WALLPAPER);
     }
   }
 
   private void checkWritePermission() {
-    if (checkSelfPermission(permission.WRITE_EXTERNAL_STORAGE)
+    if (ContextCompat.checkSelfPermission(this, permission.WRITE_EXTERNAL_STORAGE)
         != PackageManager.PERMISSION_GRANTED) {
 
       // Should we show an explanation?
-      if (shouldShowRequestPermissionRationale(
+      if (ActivityCompat.shouldShowRequestPermissionRationale(this,
           permission.WRITE_EXTERNAL_STORAGE)) {
         // Explain to the user why we need to read the contacts
         Toast
@@ -417,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
                 Toast.LENGTH_SHORT).show();
       }
 
-      requestPermissions(new String[]{permission.WRITE_EXTERNAL_STORAGE},
+      ActivityCompat.requestPermissions(this,new String[]{permission.WRITE_EXTERNAL_STORAGE},
           REQUEST_WRITE_PERM_CODE);
 
       // MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE is an
@@ -637,7 +640,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
 
         builder1.setTitle("Contact us");
         builder1.setMessage(
-            "In order to provide feedback or report bugs please email:\n B00350529@studentmail.uws.ac.uk \n cristina5696@gmail.com \n B00358949@studenmail.uws.ac.uk");
+            "For feedback or to report bugs please email:\n\n B00350529@studentmail.uws.ac.uk \n cristina5696@gmail.com \n B00358949@studenmail.uws.ac.uk");
 
         builder1.setPositiveButton("Ok", new OnClickListener() {
           @Override
