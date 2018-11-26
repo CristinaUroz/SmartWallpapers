@@ -38,8 +38,30 @@
             android:layout_marginLeft="5dp"/>
 
         <TextView
+            android:id="@+id/txtTitle2I"
+            android:layout_width="38dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:text=""
+            android:textAlignment="center"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@+id/setViewI"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignStart="@+id/ImageViewG"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/set"
+            android:layout_marginTop="5dp"
+            android:layout_marginLeft="5dp"/>
+
+        <TextView
             android:id="@+id/txtTitleI"
-            android:layout_width="95dp"
+            android:layout_width="38dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_weight="1"

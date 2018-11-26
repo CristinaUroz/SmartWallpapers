@@ -705,6 +705,8 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     ImageView imageView = (ImageView) mView.findViewById(R.id.ImageViewD);
     final ImageView like = (ImageView) mView.findViewById(R.id.likeViewD);
     ImageView delete = (ImageView) mView.findViewById(R.id.deleteViewD);
+    ImageView set = (ImageView) mView.findViewById(R.id.setViewD);
+    ImageButton close = (ImageButton) mView.findViewById(R.id.closeButton);
     ImageView previous = (ImageView) mView.findViewById(R.id.previousViewD);
     ImageView next = (ImageView) mView.findViewById(R.id.nextViewD);
     TextView Title = (TextView) mView.findViewById(R.id.txtTitleD);
@@ -763,6 +765,34 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
           }
           createPhotoDialog(new_position);
         }
+      }
+    });
+
+    set.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+
+        mBuilder.setMessage(R.string.display_photo);
+        mBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialogInterface, int i) {
+            writeToPreferenceFile(MainActivity.this,
+                    STRING, ACTUAL_IMAGE,
+                    photoMap.get(actual_collection).get(position).getUrls().getRegular());
+            setWallpaper();
+          }
+        });
+
+        AlertDialog dialog = mBuilder.create();
+        dialog.show();
+      }
+    });
+
+    close.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        dialog.cancel();
       }
     });
 
@@ -1273,7 +1303,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
   }
 
   //Set image as a wallpaper
-  private void setWallpaper() {
+  void setWallpaper() {
 
     final String src = readString(this, ACTUAL_IMAGE);
     if (src != "" & src != null) {
@@ -1457,10 +1487,6 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
             writeToPreferenceFile(MainActivity.this, STRING, ACTUAL_QUOTE_AUTHOR,
                 quoteList.get(position).getAuthor());
               collectQuoteDisplayInfo();
-
-
-
-
           }
         });
 
@@ -1546,7 +1572,7 @@ public class MainActivity extends AppCompatActivity implements PhotoSearchListen
     }
   };
 
-    private void collectQuoteDisplayInfo() {
+    void collectQuoteDisplayInfo() {
         LayoutInflater inflater = (LayoutInflater) MainActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         quoteDisplayLayout = inflater.inflate(R.layout.popup_quote_display, null);
 
