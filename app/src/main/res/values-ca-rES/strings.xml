@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SmartWallpapers</string>
+    <string name="ok">D\'acord</string>
+    <string name="info">"Tutorial "</string>
+    <string name="automatic">Canvi automàtic de fons de pantalla</string>
+    <string name="timer">Temporitzador</string>
+    <string name="photo_refresh_interval">CONFIGURACIÓ D\'INTERVAL D\'ACTUALITZACIÓ</string>
+    <string name="refresh_info">"Indiqui l'interval d'actualització del fons de pantalla en minuts "</string>
+    <string name="apply">"aplicar "</string>
+    <string name="enable_auto_refreshing">"Habilitar l'actualització automàtica del fons de pantalla "</string>
+    <string name="display_quote">"Vol visualitzar aquesta cita en el seu fons de pantalla? "</string>
+    <string name="display_collection">"Vol configurar una imatge de la categoria %s com a fons de pantalla? "</string>
+    <string name="display_photo">"Vol configurar aquesta imatge com a fons de pantalla? "</string>
+    <string name="app_info">Canvia el fons de pantalla apretant el botó del mig de la imatge o de la cita.
+        \n\nFes clic per entrar a una col·lecció
+        \n\nFes click per veure una imatge
+        \n\nBotons de la barra d\'estat:
+        \n\t->canvi de fondso de pantalla automàtic
+        \n\t->canviar de citas a categories o viceversa
+        \n\t->menú de configuració</string>
+    <string name="Search_photos">Buscar imatges</string>
+    <string name="Search">Buscar</string>
+    <string name="search_from_your_localization">Buscar segons la localització actual</string>
+    <string name="enter_word">"Siusplau, escrigui una paraula per a buscar "</string>
+    <string name="quote_size_question">Esculli la mida:</string>
+    <string name="qd_small">petit</string>
+    <string name="qd_medium">mitja</string>
+    <string name="qd_large">gran</string>
+    <string name="quote_color_question">Esculli el color:</string>
+    <string name="qd_white">blanc</string>
+    <string name="qd_black">negre</string>
+    <string name="qd_green">verd</string>
+    <string name="quote_localization_question">Esculli la posició:</string>
+    <string name="qd_top">superior</string>
+    <string name="qd_middle">mig</string>
+    <string name="qd_bottom">inferior</string>
+    <string name="prefMenuItem">Veure preferències</string>
+</resources>

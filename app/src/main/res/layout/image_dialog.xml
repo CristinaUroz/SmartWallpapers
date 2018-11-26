@@ -30,7 +30,8 @@
         android:layout_weight="1"
         android:layout_centerVertical="true"
         android:foregroundGravity="center_vertical"
-        app:srcCompat="@android:color/transparent" />
+        app:srcCompat="@android:color/transparent"
+        android:layout_marginBottom="10dp"/>
 
     <ImageView
         android:id="@+id/nextViewD"
