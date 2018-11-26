@@ -3,13 +3,11 @@
     <string name="app_name">SmartWallpapers</string>
     <string name="ok">D\'acord</string>
     <string name="info">"Tutorial "</string>
-    <string name="automatic">Canvi automàtic de fons de pantalla</string>
-    <string name="timer">Temporitzador</string>
+  <string name="timer">Temporitzador</string>
     <string name="photo_refresh_interval">CONFIGURACIÓ D\'INTERVAL D\'ACTUALITZACIÓ</string>
     <string name="refresh_info">"Indiqui l'interval d'actualització del fons de pantalla en minuts "</string>
     <string name="apply">"aplicar "</string>
-    <string name="enable_auto_refreshing">"Habilitar l'actualització automàtica del fons de pantalla "</string>
-    <string name="display_quote">"Vol visualitzar aquesta cita en el seu fons de pantalla? "</string>
+  <string name="display_quote">"Vol visualitzar aquesta cita en el seu fons de pantalla? "</string>
     <string name="display_collection">"Vol configurar una imatge de la categoria %s com a fons de pantalla? "</string>
     <string name="display_photo">"Vol configurar aquesta imatge com a fons de pantalla? "</string>
     <string name="app_info">Canvia el fons de pantalla apretant el botó del mig de la imatge o de la cita.

@@ -1,14 +1,12 @@
 <resources>
     <string name="app_name">SmartWallpapers</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="info">Tutorial</string>
-    <string name="automatic">Automatic wallpaper change</string>
     <string name="timer">Timer</string>
-    <string name="photo_refresh_interval">SET REFRESH INTERVAL</string>
+    <string name="photo_refresh_interval">Set refresh interval</string>
     <string name="refresh_info">Enter wallpaper refresh interval in minutes.</string>
     <string name="apply">apply</string>
-    <string name="enable_auto_refreshing">Enable auto-refreshing wallpaper</string>
-    <string name="display_quote">Do you want to display this quote on top of your wallpaper?</string>
+  <string name="display_quote">Do you want to display this quote on top of your wallpaper?</string>
     <string name="display_collection">Do you want to display a %s photo as wallpaper?</string>
     <string name="display_photo">Do you want to display this photo as wallpaper?</string>
     <string name="app_info">Change wallpaper by pressing middle button on image/quote.

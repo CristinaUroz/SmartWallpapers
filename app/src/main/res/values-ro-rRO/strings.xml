@@ -2,5 +2,30 @@
 <resources>
   <string name="app_name">SmartWallpapers</string>
   <string name="info">Tutorial</string>
-  <string name="Search">Cauta</string>
+  <string name="ok">Ok</string>
+  <string name="Search">Caută</string>
+  <string name="timer">Cronometru</string>
+  <string name="photo_refresh_interval">Setează intervalul de reîmprospătare</string>
+  <string name="refresh_info">Introduceți intervalul de timp la care imaginea de pe ecran să se schimbe.</string>
+  <string name="apply">Actualizează</string>
+  <string name="display_quote">Doriți să afișați acest proverb deasupra imagini de pe ecranul de porninre?</string>
+  <string name="display_collection">Doriți să setați o imagine din coleția  %s  ca si fundal pe ecranul de pornire?</string>
+  <string name="display_photo">Doriți să setați aceasta imagine ca fundal?</string>
+  <string name="prefMenuItem">Vedeți preferințele</string>
+  <string name="qd_green">verde</string>
+  <string name="qd_top">sus</string>
+  <string name="enter_word">Vă rog sa introduceți un cuvânt pentru a căuta</string>
+  <string name="qd_small">mic</string>
+  <string name="qd_black">negru</string>
+  <string name="qd_medium">mijlociu</string>
+  <string name="qd_middle">mijlociu</string>
+  <string name="qd_bottom">jos</string>
+  <string name="qd_large">mare</string>
+  <string name="quote_localization_question">Alegeți locația proverbului</string>
+  <string name="quote_size_question">Alegeți dimensiunea</string>
+  <string name="quote_color_question">Alegeți culoarea</string>
+  <string name="app_info">Schimbați imaginea/proverbul folosind butonul din mijloc, partea de sus a imaginii</string>
+  <string name="search_from_your_localization">Căutați imagini din apropierea locatiei dumneavoastră</string>
+  <string name="Search_photos">Căutați imagini</string>
+  <string name="qd_white">alb</string>
 </resources>

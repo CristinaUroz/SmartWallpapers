@@ -3,14 +3,12 @@
   <string name="app_name">SmartWallpapers</string>
   <string name="ok">De acuerdo</string>
   <string name="info">Tutorial</string>
-  <string name="automatic">Cambio de fondo de pantalla automático</string>
   <string name="timer">Temporizador</string>
   <string name="photo_refresh_interval">CONFIGURACIÓN DE INTERVALO DE ACTUALIZACIÓN</string>
   <string name="refresh_info">Indique el intervalo de actualización del fondo de pantalla en minutos</string>
   <string name="apply">aplicar</string>
-  <string name="enable_auto_refreshing">Habilitar la actualización automática del fondo de pantalla</string>
   <string name="display_quote">¿Quiere visualizar esta cita en su fondo de pantalla?</string>
-  <string name="display_collection">¿Quiere configurar una imagen de la categoria %s como fondo de pantalla?</string>
+  <string name="display_collection">¿Quiere configurar una imagen de la categoría %s como fondo de pantalla?</string>
   <string name="display_photo">¿Quiere configurar esta imagen como fondo de pantalla?</string>
   <string name="app_info">Cambia el fondo de pantalla presionando el botón del medio de la imatge o de la cita.
         \n\nHaz clic para entrar a una colección
